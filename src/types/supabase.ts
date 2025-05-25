@@ -1,13 +1,31 @@
-// src/types/supabase.ts
-export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
 
 export interface Database {
   public: {
     Tables: {
-      // 必要に応じてテーブル定義を追加
+      users: {
+        Row: {
+          id: string;
+          name: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          name?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string | null;
+          created_at?: string;
+        };
+      };
     };
-    Views: {};
-    Functions: {};
-    Enums: {};
   };
 }
