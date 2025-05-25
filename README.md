@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ConnLog（コンログ）
 
-## Getting Started
+📊 **ConnLog** は、connpass のイベント参加履歴からスキルを可視化するポートフォリオ拡張アプリです。  
+学習の足跡や得意分野を可視化・アピールできるよう設計されています。
 
-First, run the development server:
+---
+
+## 🧩 主な機能
+
+- ✅ イベント参加履歴の登録（connpassイベントIDから情報取得）
+- 🏷️ タグ（スキル）付けによる分類・分析
+- 📈 ダッシュボードでのグラフ表示（カテゴリ別割合・週ごとの参加数）
+- 🔐 Supabase Auth による認証機能（メール認証）
+- 👤 プロフィール編集機能（自己紹介・アイコンなど）
+
+---
+
+## 🛠 使用技術
+
+| 項目          | 内容                                           |
+|---------------|------------------------------------------------|
+| フレームワーク | Next.js 14（App Router）                     |
+| 認証           | Supabase Auth                                 |
+| データベース   | Supabase（PostgreSQL）                        |
+| UI/UX         | Tailwind CSS、Figma                           |
+| グラフ表示     | Recharts（円グラフ・棒グラフ）                |
+| デプロイ       | Vercel（予定）                                |
+
+---
+
+## 🚀 ローカル環境での起動方法
+
+1. リポジトリをクローン：
+
+```bash
+git clone https://github.com/your-username/connlog.git
+cd connlog
+```
+
+2. パッケージをインストール：
+
+```bash
+npm install
+```
+
+3. `.env.local` を作成し、以下を記述：
+
+```
+NEXT_PUBLIC_SUPABASE_URL=（あなたの Supabase プロジェクトURL）
+NEXT_PUBLIC_SUPABASE_ANON_KEY=（Supabase の公開鍵）
+NEXT_PUBLIC_DEV_SKIP_AUTH=true
+```
+
+4. 開発サーバーを起動：
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ✅ 開発ステータス（2025/05/24 時点）
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- [x] Supabase プロジェクト作成
+- [x] 認証（メールログイン / Magic Link）
+- [x] サインイン・サインアウトUI
+- [x] 認証スキップ設定（開発用）
+- [x] ER図作成・テーブル設計（users, events, user_events, tags など）
+- [x] Figma による画面デザイン作成
+- [ ] タグ機能・スキル分析ページ
+- [ ] Vercelへのデプロイ
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 📌 補足メモ
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- 開発途中のデモURLは近日中に公開予定
+- Supabase の権限管理やセキュリティロール設定は後日実装
+- 今後、Clerk + Prisma への移行も検討中
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📫 作者について
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+このアプリは、あかねいろによって開発されています。  
+勉強会・イベント参加を可視化し、自分の「努力」をアピールする場を作るために作りました。
