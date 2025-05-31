@@ -2,7 +2,7 @@
 
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { createBrowserClient } from '@supabase/ssr';
-import { Database } from '@/types/supabase';
+import { Database } from '../types/supabase';
 import { useState } from 'react';
 
 export default function SupabaseProvider({
