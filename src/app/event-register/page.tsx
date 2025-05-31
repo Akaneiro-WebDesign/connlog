@@ -3,12 +3,20 @@
 import { useState } from 'react';
 import SkillTagInput from '@/components/SkillTagInput';
 
+type ConnpassEvent = {
+    event_id: number;
+    title: string;
+    started_at: string;
+    place: string | null;
+    event_url: string;
+};
+
 export default function EventRegisterPage() {
     const [input, setInput] = useState('');
-    const [event, setEvent] = useState<any | null>(null);
+    const [event, setEvent] = useState<ConnpassEvent | null>(null);
     const [error, setError] = useState('');
 
-    const handleSearch = async() => {
+    const handleSearch = async () => {
         setError('');
         setEvent(null);
 
@@ -26,6 +34,7 @@ export default function EventRegisterPage() {
               setError('イベントが見つかりませんでした');
         }
     } catch(err){
+        console.error(err);
         setError('エラーが発生しました');
     }
 };
