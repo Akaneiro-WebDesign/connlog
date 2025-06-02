@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+type Props = {
+    tags: string[];
+    setTags:React.Dispatch<React.SetStateAction<string[]>>;
+};
 
-export default function SkillTagInput(){
+export default function SkillTagInput({ tags, setTags }:Props) {
     const [tagInput, setTagInput ] = useState('');
-    const [tags, setTags ] = useState<string[]>([]);
 
     const handleAddTag = () => {
         const newTag = tagInput.trim();
@@ -15,7 +17,7 @@ export default function SkillTagInput(){
 };
 
 return (
-    <div className="max-w-md mx-auto mt-6 p-4 border rounded bg-white shadow">
+    <div className="max-w-md p-4 border rounded bg-white shadow">
         <h2 className="text-lg font-semibold mb-2">スキルタグを追加</h2>
 
     <div className="flex gap-2 mb-4">
