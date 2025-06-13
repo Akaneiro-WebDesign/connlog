@@ -6,6 +6,8 @@ import 'dayjs/locale/ja';
 import weekday from 'dayjs/plugin/weekday';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import SkillTagInput from '../../components/SkillTagInput';
+import { insertTag } from '@/lib/insertTag';
+import { supabase } from '@/lib/supabaseClient';
 
 dayjs.locale('ja');
 dayjs.extend(weekday);
@@ -27,6 +29,30 @@ export default function EventCard({ event }: Props) {
     const handleCloseModal =() => setShowModal(false);
     // 親でタグの状態を定義
     const [tags, setTags] = useState<string[]>([]);
+    const handleSave = async () => {
+    const { data: { user } } =  await supabase.auth.getUser();
+
+    if(!user){
+        alert("ログインしてください");
+    return;
+    }
+
+    try {
+        for (const tag of tags) {
+            await insertTag({
+                name: tag,
+                event_id: event.event_id,
+                user_id:user.id,
+        });
+    }
+
+    alert("保存しました！")
+    handleCloseModal();
+} catch (error) {
+    console.error("保存エラー：",error);
+    alert("保存に失敗しました");
+}
+    };
 
     return (
         <div className="border rounded p-4 shadow-sm bg-white relative">
@@ -66,7 +92,7 @@ export default function EventCard({ event }: Props) {
                     {/*  SkillTagInput に状態を渡す */}
                     <SkillTagInput tags={tags} setTags={setTags} />
 
-                    <button className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    <button onClick={handleSave} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                         保存
                     </button>
                     <button

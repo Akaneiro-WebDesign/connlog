@@ -1,33 +1,26 @@
+'use client';
+
 import './globals.css';
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import SupabaseProvider from '@/components/SupabaseProvider';
+import { SessionContextProvider } from '@supabase/auth-helpers-react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-const geistSans = Geist ({
-  subsets :['latin'],
-  variable :'--font-geist-sans',
-});
+import { useState } from 'react';
 
-const geistMono = Geist_Mono({
-  subsets:['latin'],
-  variable:'--font-geist-mono'
-});
-
-export const metadata: Metadata = {
-  title:'ConnLog',
-  description: 'connpass参加履歴を可視化するアプリ',
-};
 export default function RootLayout ({
-  children,
+  children
 }:{
-  children:React.ReactNode;
+  children: React.ReactNode
 }) {
+
+  const [supabaseClient] = useState(() => 
+  createClientComponentClient());
+
   return (
     <html lang="ja">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-            <SupabaseProvider>
+        <body>
+            <SessionContextProvider supabaseClient={supabaseClient}>
                 {children}
-            </SupabaseProvider>
+            </SessionContextProvider>
           </body>
     </html>
   );

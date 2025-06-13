@@ -1,33 +1,37 @@
 'use client';
 
-import { useDevUser } from '@/hooks/useDevUser';
+import { useUser } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/browser' 
+import { supabase } from '@/lib/supabase/browser'; 
 
 export default function DashboardPage() {
-    const user = useDevUser();
+    const user = useUser();
     const router = useRouter();
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (!user) {
-            router.push('/login');
+        if (user === null) {
+            router.replace('/login');
         }
     },[user, router]);
+
+    if (user === undefined){
+        return <p>ログイン状態を確認中...</p>;
+    }
+
+    if(user === null){
+        return null;
+    }
 
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
         if (error) {
             setError('ログアウトに失敗しました');
         } else {
-            router.push('/login');
+            router.replace('/login');
         }
     };
-
-    if (!user) {
-        return <p>読み込み中...</p>;
-    }
 
     return (
         <div className="max-w-2xl mx-auto mt-12">
