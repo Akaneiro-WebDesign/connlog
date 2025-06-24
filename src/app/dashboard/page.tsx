@@ -1,28 +1,30 @@
 'use client';
 
-import { useUser } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/browser'; 
+import { supabase } from '@/lib/supabase/browser';
 
 export default function DashboardPage() {
-    const user = useUser();
+
+    const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (user === null) {
-            router.replace('/login');
-        }
-    },[user, router]);
+        const checkSession = async () => {
+            const { data, error } = await supabase.auth.getSession();
+            const session = data.session;
 
-    if (user === undefined){
-        return <p>ログイン状態を確認中...</p>;
-    }
-
-    if(user === null){
-        return null;
-    }
+            if (!session || !session.user) {
+                router.replace('/login');
+            } else {
+                setUserEmail(session.user.email);
+            }
+            setLoading(false);
+        };
+        checkSession();
+    },[router]);
 
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
@@ -33,9 +35,13 @@ export default function DashboardPage() {
         }
     };
 
+    if (loading) {
+        return <p>ログイン状態を確認中...</p>;
+    }
+
     return (
         <div className="max-w-2xl mx-auto mt-12">
-            <h1 className="text-2xl font-bold mb-4">ようこそ、{user.email}さん</h1>
+            <h1 className="text-2xl font-bold mb-4">ようこそ、{userEmail}さん</h1>
             <p className="mb-4">このページはログインしているユーザーだけが見られます。</p>
 
             <button
@@ -44,7 +50,7 @@ export default function DashboardPage() {
             >
                 ログアウト
             </button>
-            {error && <p className="mt-4 text-sm text-red-600">{error}</p> }
+            {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
         </div>
     );
 }

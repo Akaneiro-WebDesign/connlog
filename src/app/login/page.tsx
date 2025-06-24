@@ -17,9 +17,9 @@ export default function LoginPage() {
 
                 const { error } = await supabase.auth.signInWithOtp({
                     email,
-                    options:{
-                        emailRedirectTo: `${location.origin}/dashboard`, //ログイン成功後の遷移先 
-                    },
+                    options: {
+                        emailRedirectTo: process.env.NEXT_PUBLIC_REDIRECT_URL || 'http://localhost:3000/dashboard',
+                      },                      
                 });
 
                 if (error) {

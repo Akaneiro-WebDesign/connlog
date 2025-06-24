@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient';
 export async function insertTag ({
     name,
     event_id,
-    user_id
+    user_id,
 }: {
     name: string;
     event_id: number;
@@ -13,8 +13,8 @@ export async function insertTag ({
         {
             name,
             event_id,
-            user_id
-        }
+            user_id,
+        },
     ]);
 
 if (error) {
