@@ -23,8 +23,11 @@ export default function EventSearchForm(){
         try {
             const eventData = await fetchConnpassEvent(eventId);
             console.log('[DEBUG] 取得されたイベントデータ:', eventData);
+            console.log('取得したイベントデータ:', event);
             setEvent(eventData);
+            console.log('取得したイベントデータ:', eventData);
             setError(null);
+            console.log('[DEBUS] event.event_url:', eventData.event_url);
         } catch (err: any) {
             console.error('[ERROR] イベント取得に失敗:', err);
             setError(err.message || 'イベント取得に失敗しました。');
@@ -59,14 +62,18 @@ export default function EventSearchForm(){
                     <h3 className="text-lg font-bold">{event.title}</h3>
                     <p>📅{new Date(event.started_at).toLocaleString('ja-JP')}</p>
                     <p>📍{event.place || '場所未定'}</p>
-                    <a
-                    href={event.event_url}
+                    {event.url ? (
+                         <a
+                    href={event.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-500 underline"
                     >
-                        connpassで見る
+                       connpassで見る
                     </a>
+                    ) : (
+                        <p className="text-gray-500">リンクがありません</p>
+                    )}
                 </div>
             )}
         </div>
