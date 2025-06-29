@@ -3,35 +3,42 @@
 import { useState } from 'react';
 import { extractEventId } from '@/lib/extractEventId';
 import { fetchConnpassEvent } from '@/lib/fetchConnpassEvent';
+import { fetchUserEvents } from '@/lib/fetchUserEvents';
 
 export default function EventSearchForm(){
     const [input, setInput] = useState('');
-    const [event, setEvent] = useState<any | null>(null);
+    const [searchType, setSearchType] = useState<'event' | 'nickname' >('event');
+    const [events, setEvents] = useState<any[] | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const handleSearch = async () => {
-        const eventId = extractEventId(input);
-        console.log('[DEBUG] 入力値:', input);
-        console.log('[DEBUG] 抽出された eventId:', eventId);
+        setError(null);
+        setEvents(null);
 
-        if (!eventId){
+        try {
+        if (searchType === 'event'){
+            const eventId = extractEventId(input);
+        if (!eventId) {
             setError('イベントIDまたはURLが正しくありません。');
-            setEvent(null);
             return;
         }
 
-        try {
-            const eventData = await fetchConnpassEvent(eventId);
-            console.log('[DEBUG] 取得されたイベントデータ:', eventData);
-            console.log('取得したイベントデータ:', event);
-            setEvent(eventData);
-            console.log('取得したイベントデータ:', eventData);
-            setError(null);
-            console.log('[DEBUS] event.event_url:', eventData.event_url);
-        } catch (err: any) {
-            console.error('[ERROR] イベント取得に失敗:', err);
+        const singleEvent = await fetchConnpassEvent(eventId);
+        setEvents([singleEvent]);
+        } else if (searchType === 'nickname')
+        {
+            let nickname = input.trim();
+            if (!nickname){
+            setError('ニックネームを入力してください。');
+            return;
+            }
+            nickname = nickname.replace('https://connpass.com/user/', '')
+            .replace('/','');
+            const userEvents = await fetchUserEvents(nickname);
+            setEvents(userEvents);
+        }
+    } catch (err: any) {
             setError(err.message || 'イベント取得に失敗しました。');
-            setEvent(null);
         }
     };
 
@@ -39,11 +46,38 @@ export default function EventSearchForm(){
         <div className="max-w-xl mx-auto p-4 bg-white border rounded shadow">
             <h2 className="text-lg font-semibold mb-2">connpassイベント検索</h2>
 
+
+            <div className="mb-2">
+                <label className="mr-4">
+                    <input
+                    type="radio"
+                    name="searchType"
+                    value="event"
+                    checked={searchType === 'event'}
+                    onChange={()=>
+                        setSearchType('event')}
+                    />{''}
+                    イベントID/URL
+                </label>
+                <label>
+                    <input
+                    type="radio"
+                    name="searchType"
+                    value="nickname"
+                    checked={searchType === 'nickname'}
+                    onChange = {() =>
+                    setSearchType('nickname')}
+                    />{' '}
+                    ニックネーム
+                </label>
+            </div>
+
             <div className="flex gap-2 mb-4">
             <input
             type="text"
             className="flex-1 px-3 py-2 border rounded"
-            placeholder="イベントIDまたはURLを入力"
+            placeholder={searchType === 'event' ? 'イベントIDまたはURLを入力' : 'connpassのニックネームを入力'}
+
             value={input}
             onChange={(e) => setInput(e.target.value)}
             />
@@ -57,8 +91,10 @@ export default function EventSearchForm(){
 
             {error && <p className="text-red-600">{error}</p>}
 
-            {event && (
+            {events && events.length > 0 && (
                 <div className="mt-4 border-t pt-4">
+                    {events.map((event, index) =>(
+                        <div key={event.event_id || index} className="mb-4">
                     <h3 className="text-lg font-bold">{event.title}</h3>
                     <p>📅{new Date(event.started_at).toLocaleString('ja-JP')}</p>
                     <p>📍{event.place || '場所未定'}</p>
@@ -74,6 +110,8 @@ export default function EventSearchForm(){
                     ) : (
                         <p className="text-gray-500">リンクがありません</p>
                     )}
+                </div>
+                    ))}
                 </div>
             )}
         </div>
