@@ -1,0 +1,66 @@
+.
+├── eslint.config.mjs
+├── file-tree.txt
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── public
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── README.md
+├── src
+│   ├── app
+│   │   ├── components
+│   │   ├── dashboard
+│   │   ├── event-register
+│   │   ├── events
+│   │   ├── favicon.ico
+│   │   ├── globals.css
+│   │   ├── history
+│   │   ├── layout.tsx
+│   │   ├── login
+│   │   ├── page.tsx
+│   │   ├── profile
+│   │   ├── register
+│   │   ├── search
+│   │   ├── settings
+│   │   ├── signup
+│   │   ├── skills
+│   │   ├── tagtest
+│   │   └── testmodal
+│   ├── components
+│   │   ├── ClientLayout.tsx
+│   │   ├── EventDetailModalContent.tsx
+│   │   ├── EventSearchForm.tsx
+│   │   ├── Modal.tsx
+│   │   ├── NoteInput.tsx
+│   │   ├── SkillTagInput.tsx
+│   │   ├── SupabaseProvider.tsx
+│   │   └── UserProvider.tsx
+│   ├── hooks
+│   │   └── useDevUser.ts
+│   ├── lib
+│   │   ├── extractEventId.ts
+│   │   ├── fetchConnpassEvent.ts
+│   │   ├── fetchNote.ts
+│   │   ├── fetchUserEvents.ts
+│   │   ├── insertNote.ts
+│   │   ├── insertTag.ts
+│   │   ├── insertTags.ts
+│   │   ├── insertTagsAndNote.ts
+│   │   ├── mockEvents.ts
+│   │   ├── supabase
+│   │   └── supabaseClient.ts
+│   ├── pages
+│   │   └── api
+│   └── types
+│       └── supabase.ts
+├── tsconfig.json
+└── tsconfig.tsbuildinfo
+
+25 directories, 39 files

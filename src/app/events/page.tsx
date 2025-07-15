@@ -10,7 +10,7 @@ export default function EventsPage() {
         
         <div className="grid gap-4 sm:grid-cols-2">
             {mockEvents.map((event) => (
-                <EventCard key={event.event_id} event={event} />
+                <EventCard key={event.event_id} event={event}/>
             ))}
         </div>
         </main>

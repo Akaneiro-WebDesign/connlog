@@ -1,26 +1,22 @@
-'use client';
-
 import './globals.css';
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import ClientLayout from '@/components/ClientLayout';
 
-import { useState } from 'react';
+export const metadata = {
+  title:'Connlog',
+  description:'connpassイベント×スキルの記録',
+};
 
 export default function RootLayout ({
-  children
+  children,
 }:{
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-
-  const [supabaseClient] = useState(() => 
-  createClientComponentClient());
-
   return (
     <html lang="ja">
         <body>
-            <SessionContextProvider supabaseClient={supabaseClient}>
+          <ClientLayout>
                 {children}
-            </SessionContextProvider>
+          </ClientLayout>
           </body>
     </html>
   );

@@ -1,24 +1,24 @@
-'use client'
+'use client';
 
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { createBrowserClient } from '@supabase/ssr';
-import { Database } from '../types/supabase';
 import { useState } from 'react';
+import { createBrowserSupabaseClient } from '@/lib/supabase/browser';
+import { SessionContextProvider } from '@supabase/auth-helpers-react';
+import { type Session } from '@supabase/supabase-js';
+
 
 export default function SupabaseProvider({
     children,
+    initialSession,
 }:{
     children:React.ReactNode;
+    initialSession?: Session | null;
 }){
     const [supabaseClient] = useState(() =>
-    createBrowserClient<Database>(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-);
+    createBrowserSupabaseClient());
 
 return (
-    <SessionContextProvider supabaseClient={supabaseClient}>
+    <SessionContextProvider supabaseClient={supabaseClient} initialSession={initialSession}
+    >
         {children}
     </SessionContextProvider>
 );

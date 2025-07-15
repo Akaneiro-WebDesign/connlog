@@ -2,9 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/browser';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function DashboardPage() {
+    const supabase = createClientComponentClient();
 
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -24,9 +25,9 @@ export default function DashboardPage() {
             setLoading(false);
         };
         checkSession();
-    },[router]);
+    },[router, supabase]);
 
-    const handleLogout = async () => {
+    const handleLogout = async() => {
         const { error } = await supabase.auth.signOut();
         if (error) {
             setError('ログアウトに失敗しました');
@@ -44,13 +45,10 @@ export default function DashboardPage() {
             <h1 className="text-2xl font-bold mb-4">ようこそ、{userEmail}さん</h1>
             <p className="mb-4">このページはログインしているユーザーだけが見られます。</p>
 
-            <button
-            onClick={handleLogout}
-            className="bg-gray-800 text-white py-2 px-4 rounded hover:bg-gray-700 transition"
-            >
+            <button onClick={handleLogout} className="bg-gray-800 text-white py-2 px-4 rounded bg-gray-700 transition">
                 ログアウト
             </button>
-            {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+            {error && <p className="mt-4 text-sm text-red-600">{error}</p> }
         </div>
     );
 }

@@ -1,55 +1,55 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { supabase } from '@/lib/supabase/browser';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase/client'
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
-    const [message, setMessage] = useState('');
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [errorMsg, setErrorMsg] = useState('')
+  const router = useRouter()
 
-    return (
-        <div className="max-w-md mx-auto mt-20 p-6 bg-white rounded shadow">
-            <h1 className="text-2xl font-bold mb-4">ログイン</h1>
-            <form
-            onSubmit={async (e) => {
-                e.preventDefault();
-                setMessage(''); //メッセージリセット
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
 
-                const { error } = await supabase.auth.signInWithOtp({
-                    email,
-                    options: {
-                        emailRedirectTo: process.env.NEXT_PUBLIC_REDIRECT_URL || 'http://localhost:3000/dashboard',
-                      },                      
-                });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
-                if (error) {
-                    console.error(error.message);
-                    setMessage('ログインリンクの送信に失敗しました');
-                } else {
-                    setMessage('ログインリンクを送信しました。メールをご確認ください。');
-                }
-            }}
-            >
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    メールアドレス
-                </label>
-                <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) =>setEmail(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
-                placeholder="you@example.com"
-                required
-                />
-                <button
-                type="submit"
-                className="w-full bg-connpass-red text-white py-2 px-4 rounded hover:bg-red-600 transition"
-                >
-                    ログインリンクを送信
-                </button>
-                {message && <p className="mt-4 text-sm text-gray-600">{message}</p>}
-            </form>
-        </div>
-    );
+    if (error) {
+      setErrorMsg(error.message)
+    } else {
+      router.push('/')
+    }
+  }
+
+  return (
+    <div className="p-8 max-w-md mx-auto">
+      <h1 className="text-2xl font-bold mb-4">ログイン</h1>
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="メールアドレスを入力"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="border p-2 w-full mb-4"
+          required
+        />
+        <input
+          type="password"
+          placeholder="パスワードを入力"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="border p-2 w-full mb-4"
+          required
+        />
+        {errorMsg && <p className="text-red-500 mb-2">{errorMsg}</p>}
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded w-full">
+          ログイン
+        </button>
+      </form>
+    </div>
+  )
 }

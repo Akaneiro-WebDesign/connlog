@@ -1,11 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useUser } from '@/components/UserProvider';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ja';
 import weekday from 'dayjs/plugin/weekday';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
-import SkillTagInput from '../../components/SkillTagInput';
+import SkillTagInput from '@/components/SkillTagInput';
+import NoteInput from '@/components/NoteInput';
+import insertTagsAndNote from '@/lib/insertTagsAndNote';
+import { supabase } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
 
 dayjs.locale('ja');
 dayjs.extend(weekday);
@@ -22,11 +27,81 @@ type Props = {
 };
 
 export default function EventCard({ event }: Props) {
-    const [showModal,setShowModal] = useState(false);
-    const handleOpenModal = () => setShowModal(true);
-    const handleCloseModal =() => setShowModal(false);
-    // 親でタグの状態を定義
+    const { user, isLoading } = useUser();
+    const router = useRouter();
+    const [showModal, setShowModal] = useState(false);
     const [tags, setTags] = useState<string[]>([]);
+    const [note, setNote] = useState('');
+    const [loading, setLoading] = useState(true);
+
+    const handleOpenModal = () => {
+        if (isLoading) return;
+        if (!user) {
+            alert('ログインが必要です。ログイン画面に移動します。');
+            router.push('/login');
+            return;
+        }
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+    };
+    useEffect(() => {
+        const loadNoteAndTags = async () => {
+            if (!user?.id || !event.event_id) return;
+            setLoading(true);
+            try {
+                const { data: noteData, error: noteError } = await supabase
+                .from('notes')
+                .select('note')
+                .eq('event_id', event.event_id)
+                .eq('user_id', user.id)
+                .single();
+
+                if (noteError && noteError.code !== 'PGRST116'){
+                console.error('Note読み込み失敗:', noteError.message);
+                } else if (noteData?.note){
+                    setNote(noteData.note);
+                }
+
+                const { data: tagData, error:tagError } = await supabase
+                .from('tags')
+                .select('name')
+                .eq('event_id', event.event_id)
+                .eq('user_id', user.id);
+
+                if (tagError) {
+                    console.error('タグ読み込み失敗:',tagError.message);
+                } else if (tagData){
+                    setTags(tagData.map((tag) => tag.name));
+                }
+            } finally {
+    setLoading(false);
+    }
+    };
+    loadNoteAndTags();
+},[event.event_id, user?.id]);
+
+const handleSave = async () => {
+    const res = await fetch('/api/save-tags', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        tags,
+        event_id: event.event_id,
+        note,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      alert(`保存失敗: ${data.error} / ${data.detail}`);
+    } else {
+      alert('保存成功！');
+    }
+  };
 
     return (
         <div className="border rounded p-4 shadow-sm bg-white relative">
@@ -47,9 +122,8 @@ export default function EventCard({ event }: Props) {
         onClick={handleOpenModal}
         className="mt-4 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
         >
-            タグ登録
+            タグ登録 & メモ
         </button>
-        {/* モーダル */}
         {showModal && (
             <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                 <div className="bg-white p-6 rounded shadow max-w-md w-full">
@@ -63,12 +137,27 @@ export default function EventCard({ event }: Props) {
                         {dayjs(event.started_at).format('YYYY年M月D日(ddd)HH:mm〜')}
                     </p>
                     </div>
-                    {/*  SkillTagInput に状態を渡す */}
-                    <SkillTagInput tags={tags} setTags={setTags} eventId={event.event_id} onSaveSuccess={handleCloseModal}
+                    <SkillTagInput
+                    tags={tags}
+                    setTags={setTags}
                     />
+                    <div className="mt-4">
+                        {loading? (
+                            <p>読み込み中です…</p>
+                        ) : (
+                        <NoteInput note={note} setNote={setNote} />
+                        )}
+                    </div>
+                    <button
+                    onClick={handleSave}
+                    className="mt-6 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                    >
+                        タグとメモを保存する
+                    </button>
+
                     <button
                     onClick={handleCloseModal}
-                    className="mt-4 block text-sm text-blue-600 underline"
+                    className="mt-2 block text-sm text-blue-600 underline"
                     >
                         閉じる
                     </button>

@@ -14,6 +14,7 @@ export async function insertTag ({
             name,
             event_id,
             user_id,
+            created_by: user_id,
         },
     ]);
 
