@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase/client';
+import { getSupabaseClient } from '@/lib/supabase/client';
 
 type AuthContextType = {
     user: User | null;
@@ -22,6 +22,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        const supabase = getSupabaseClient();
         const getSession = async () => {
         const { data } = await supabase.auth.getSession();
         setSession(data.session);
