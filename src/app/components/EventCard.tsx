@@ -8,7 +8,7 @@ import weekday from 'dayjs/plugin/weekday';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import SkillTagInput from '@/components/SkillTagInput';
 import NoteInput from '@/components/NoteInput';
-import insertTagsAndNote from '@/lib/insertTagsAndNote';
+// import insertTagsAndNote from '@/lib/insertTagsAndNote';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
@@ -27,7 +27,7 @@ type Props = {
 };
 
 export default function EventCard({ event }: Props) {
-    const { user, isLoading } = useUser();
+    const { user, session, isLoading } = useUser();
     const router = useRouter();
     const [showModal, setShowModal] = useState(false);
     const [tags, setTags] = useState<string[]>([]);
@@ -84,22 +84,36 @@ export default function EventCard({ event }: Props) {
 },[event.event_id, user?.id]);
 
 const handleSave = async () => {
+    // ここではuseUser()を絶対呼ばない！
+    if (!user || !session?.access_token) {
+      alert("ログインしてください");
+      return;
+    }
+
+    // デバッグ：トークンが正しく渡っているか
+    console.log("user", user);
+    console.log("session", session);
+    console.log("access_token", session?.access_token);
+
     const res = await fetch('/api/save-tags', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
       body: JSON.stringify({
-        tags,
         event_id: event.event_id,
+        tags,
         note,
       }),
     });
 
-    const data = await res.json();
+    const result = await res.json();
     if (!res.ok) {
-      alert(`保存失敗: ${data.error} / ${data.detail}`);
+      alert(`保存失敗: ${result.error}`);
     } else {
       alert('保存成功！');
+      setShowModal(false);
     }
   };
 
