@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Service Role key で管理者クライアント
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!, // ← 必須
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
   {
     auth: {
       autoRefreshToken: false,
@@ -42,7 +41,7 @@ export async function POST(request: NextRequest) {
       success: true,
       user: { id: data.user?.id, email: data.user?.email }
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'サーバーエラー' }, { status: 500 })
   }
 }

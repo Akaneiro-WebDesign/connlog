@@ -11,7 +11,6 @@ serve(async (req) => {
     .from("users")
     .insert([{ id, email }]);
   if (error) {
-    console.error("INSERT ERROR:",error);
     return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   }
   return new Response(JSON.stringify({ success: true }), { status: 200 });

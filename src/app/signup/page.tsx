@@ -1,7 +1,6 @@
-// app/signup/page.jsx
 "use client";
 import { useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "../../lib/_supabaseClient";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -11,11 +10,11 @@ export default function SignUpPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSignUp = async (e) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(""); setError("");
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -79,12 +78,12 @@ export default function SignUpPage() {
         </button>
       </form>
 
-      {message && (
+      {message && 
         <p className="mt-4 text-sm text-green-600">{message}</p>
-      )}
-      {error && (
+      }
+      {error && 
         <p className="mt-4 text-sm text-red-600">{error}</p>
-      )}
+      }
 
       <p className="mt-4 text-sm">
         すでにアカウントをお持ちの方は

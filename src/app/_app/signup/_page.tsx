@@ -1,3 +1,5 @@
+//恐らく使われていないデータ
+
 'use client';
 
 import { useState } from 'react';

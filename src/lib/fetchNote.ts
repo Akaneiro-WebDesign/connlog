@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase } from './_supabaseClient';
 
 const fetchNote = async ({
   event_id,

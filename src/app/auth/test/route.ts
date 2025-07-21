@@ -7,7 +7,7 @@ export async function GET() {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
-    const { data, error } = await supabase.from('users').select('count').limit(1)
+    const { error } = await supabase.from('users').select('id').limit(1)
     return NextResponse.json({
       success: !error,
       message: error ? error.message : '接続成功',
