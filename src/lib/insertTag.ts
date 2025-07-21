@@ -1,4 +1,4 @@
-import { supabase } from './_supabaseClient';
+import { supabase } from './supabaseClient';
 
 export async function insertTag ({
     name,

@@ -9,7 +9,7 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import SkillTagInput from '@/components/SkillTagInput';
 import NoteInput from '@/components/NoteInput';
 // import insertTagsAndNote from '@/lib/insertTagsAndNote';
-import { supabase } from '@/lib/_supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
 dayjs.locale('ja');

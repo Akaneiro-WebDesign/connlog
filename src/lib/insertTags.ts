@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/_supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 
 type InsertTagsParams = {
     eventId: number;
