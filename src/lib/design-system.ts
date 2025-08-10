@@ -47,6 +47,10 @@ export const colors = {
         ]
     },
 
+    sidebar: {
+        background: '#ECECEC',
+    },
+
     // セマンティックカラー
     success: '#22C55E',
     warning: '#F59E0B',
