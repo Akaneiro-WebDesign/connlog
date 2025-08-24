@@ -6,7 +6,7 @@ import { colors, cn } from '@/lib/design-system';
 import { useState, useEffect } from 'react';
 import {
 LayoutDashboard,
-CalendarPlus,
+SearchCheck,
 CalendarClock,
 ChartPie,
 UserCog,
@@ -43,7 +43,7 @@ export default function Sidebar({ className }: SidebarProps) {
         {
             id: 'search',
             label: 'イベント登録',
-            icon: CalendarPlus,
+            icon: SearchCheck,
             href: '/search',
         },
         {
