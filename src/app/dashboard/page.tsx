@@ -6,7 +6,8 @@ import { useUser } from '@/components/UserProvider';
 import Sidebar from '@/components/Sidebar';
 import { Header } from '@/components/Header';
 import EventListComponent from '@/components/EventListComponent';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import TagChartComponent from '@/components/TagChartComponent';
+import WeeklyChartComponent from '@/components/WeeklyChartComponent';
 import {
     LayoutDashboard,
     CheckCircle
@@ -350,88 +351,16 @@ export default function DashboardPage() {
                     ) : stats ? (
                         <>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                                <div className="bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm">
-                                    <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-6 md:mb-10">タグ別割合</h3>
-                                    <div className="h-48 md:h-64">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                    data={stats.tagDistribution}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius={40}
-                                                    outerRadius={80}
-                                                    paddingAngle={2}
-                                                    dataKey="value"
-                                                    className="md:!inner-radius-[60] md:!outer-radius-[100]"
-                                                >
-                                                    {stats.tagDistribution.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip
-                                                    formatter={(value) => [`${value}%`, '']}
-                                                    contentStyle={{
-                                                        backgroundColor: 'white',
-                                                        border: '1px solid #e5e7eb',
-                                                        borderRadius: '6px',
-                                                        fontSize: '14px'
-                                                    }}
-                                                />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        {stats.tagDistribution.map((item, index) => (
-                                            <div key={index} className="flex items-center">
-                                                <div
-                                                    className="w-3 h-3 rounded-full mr-2 flex-shrink-0"
-                                                    style={{ backgroundColor: item.color }}
-                                                ></div>
-                                                <span className="text-xs md:text-sm text-gray-700 truncate">
-                                                    {item.name}({item.value}%)
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm">
-                                    <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-6 md:mb-10 lg:mb-20">週ごとの参加数</h3>
-                                    <div className="h-48 md:h-64">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <BarChart data={stats.weeklyParticipation} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                                                <XAxis
-                                                    dataKey="week"
-                                                    tick={{ fill: '#6b7280', fontSize: 10 }}
-                                                    axisLine={{ stroke: '#e5e7eb' }}
-                                                    className="md:!text-xs"
-                                                />
-                                                <YAxis
-                                                    tick={{ fill: '#6b7280', fontSize: 10 }}
-                                                    axisLine={{ stroke: '#e5e7eb' }}
-                                                    allowDecimals={false}
-                                                    domain={[0, 'dataMax']}
-                                                    className="md:!text-xs"
-                                                />
-                                                <Tooltip
-                                                    formatter={(value) => [`${value}件`, '']}
-                                                    contentStyle={{
-                                                        backgroundColor: 'white',
-                                                        border: '1px solid #e5e7eb',
-                                                        borderRadius: '6px',
-                                                        fontSize: '12px'
-                                                    }}
-                                                />
-                                                <Bar
-                                                    dataKey="count"
-                                                    fill="#ee7800"
-                                                    radius={[4, 4, 0, 0]}
-                                                />
-                                            </BarChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                </div>
+                                <TagChartComponent
+                                    data={stats.tagDistribution}
+                                    title="タグ別割合"
+                                    showLegend={true}
+                                />
+                                <WeeklyChartComponent
+                                    data={stats.weeklyParticipation}
+                                    title="週ごとの参加数"
+                                    barColor="#ee7800"
+                                />
                             </div>
                             <EventListComponent
                                 events={stats.recentEvents}
