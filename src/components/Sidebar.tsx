@@ -56,7 +56,7 @@ export default function Sidebar({ className }: SidebarProps) {
             id: 'analysis',
             label: 'スキル分析',
             icon: ChartPie,
-            href: '/analysis',
+            href: '/skills',
         },
         {
             id: 'profile',

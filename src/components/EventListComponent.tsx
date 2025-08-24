@@ -15,7 +15,7 @@ import {
     AlertTriangle
 } from 'lucide-react';
 
-// Event型定義（
+// Event型定義
 interface Event {
     id: number;
     title: string;
@@ -36,6 +36,8 @@ interface EventListComponentProps {
     events: Event[];
     showViewAllButton?: boolean;
     maxDisplayCount?: number;
+    showHeader?: boolean;
+    showContainer?: boolean;
     onViewAll?: () => void;
     onEdit?: (eventId: number) => void;
     onDelete?: (eventId: number) => void;
@@ -46,6 +48,8 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
     events,
     showViewAllButton = true,
     maxDisplayCount = 5,
+    showHeader = true,
+    showContainer = true,
     onViewAll,
     onEdit,
     onDelete,
@@ -84,106 +88,140 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
 
     // 空状態の処理
     if (events.length === 0) {
-        return (
-            <div className="bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm">
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-6 md:mb-10">イベント履歴</h3>
-                <div className="text-center py-8 text-gray-500">
-                    まだイベントが登録されていません。
-                </div>
+        const emptyContent = (
+            <div className="text-center py-8 text-gray-500">
+                まだイベントが登録されていません。
             </div>
         );
-    }
 
-    return (
-        <>
-            <div className="bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm">
-                <div className="flex justify-between items-center mb-6 md:mb-10">
-                    <h3 className="text-lg md:text-xl font-semibold text-gray-900">イベント履歴</h3>
+        if (showContainer) {
+            return (
+                <div className="bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm">
+                    {showHeader && (
+                        <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-6 md:mb-10">イベント履歴</h3>
+                    )}
+                    {emptyContent}
                 </div>
-                <div className="space-y-3 md:space-y-4">
-                    {displayEvents.map((event) => (
-                        <div key={event.id} className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 lg:p-10 mb-4 md:mb-6 lg:mb-9 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                                <div className="flex-1">
-                                    <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 lg:gap-13 mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <CalendarDays className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                            <span className="text-sm md:text-base text-gray-500">{event.date}</span>
-                                            <span className="text-sm md:text-base text-gray-500">{event.time}</span>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                            <span className="px-2 py-0.5 text-gray-700 text-sm md:text-base rounded truncate">
-                                                {event.organizer}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <a
-                                        href={event.event_url || event.url || 'https://example.com'}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="font-semibold text-gray-900 mb-3 md:mb-4 mt-2 md:mt-4 text-lg md:text-xl hover:text-red-600 cursor-pointer block line-clamp-2"
-                                    >
-                                        {event.title}
-                                    </a>
-
-                                    <div className="flex items-center gap-2 mb-3 md:mb-5">
-                                        <MapPinned className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                        <span className="text-sm md:text-base text-gray-500 truncate">{event.venue}</span>
-                                    </div>
-
-                                    <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-5 line-clamp-3">
-                                        {event.event_description}
-                                    </p>
-
-                                    <div className="flex items-start gap-2">
-                                        <Tag className="w-4 h-4 text-gray-500 flex-shrink-0 mt-1" />
-                                        <div className="flex flex-wrap gap-1 md:gap-2">
-                                            {event.tags.slice(0, 3).map((tag, index) => (
-                                                <div key={index} className="flex items-center gap-1 px-3 md:px-4 lg:px-6 py-1 bg-gray-100 text-gray-700 text-xs md:text-sm lg:text-base rounded-full">
-                                                    <span className="truncate">{tag}</span>
-                                                </div>
-                                            ))}
-                                            {event.tags.length > 3 && (
-                                                <div className="flex items-center px-3 md:px-4 py-1 bg-gray-200 text-gray-600 text-xs md:text-sm rounded-full">
-                                                    +{event.tags.length - 3}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+            );
+        } else {
+            return (
+                <>
+                    {showHeader && (
+                        <div className="mb-6 md:mb-10">
+                            <h3 className="text-lg md:text-xl font-semibold text-gray-900">イベント履歴</h3>
+                        </div>
+                    )}
+                    {emptyContent}
+                </>
+            );
+        }
+    }
+    const mainContent = (
+        <div className="space-y-3 md:space-y-4">
+            {displayEvents.map((event) => (
+                <div key={event.id} className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 lg:p-10 mb-4 md:mb-6 lg:mb-9 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                        <div className="flex-1">
+                            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 lg:gap-13 mb-2">
+                                <div className="flex items-center gap-2">
+                                    <CalendarDays className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                                    <span className="text-sm md:text-base text-gray-500">{event.date}</span>
+                                    <span className="text-sm md:text-base text-gray-500">{event.time}</span>
                                 </div>
+                                <div className="flex items-center">
+                                    <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                                    <span className="px-2 py-0.5 text-gray-700 text-sm md:text-base rounded truncate">
+                                        {event.organizer}
+                                    </span>
+                                </div>
+                            </div>
 
-                                <div className="md:ml-4 md:self-start">
-                                    <button
-                                        onClick={() => {
-                                            setSelectedEvent(event);
-                                            setIsModalOpen(true);
-                                        }}
-                                        className="w-full md:w-auto p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors cursor-pointer inline-flex items-center justify-center"
-                                        title="詳細を表示"
-                                    >
-                                        <ExternalLink className="w-4 md:w-5 h-4 md:h-5" />
-                                        <span className="md:hidden ml-2 text-sm">詳細</span>
-                                    </button>
+                            <a
+                                href={event.event_url || event.url || 'https://example.com'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold text-gray-900 mb-3 md:mb-4 mt-2 md:mt-4 text-lg md:text-xl hover:text-red-600 cursor-pointer block line-clamp-2"
+                            >
+                                {event.title}
+                            </a>
+
+                            <div className="flex items-center gap-2 mb-3 md:mb-5">
+                                <MapPinned className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                                <span className="text-sm md:text-base text-gray-500 truncate">{event.venue}</span>
+                            </div>
+
+                            <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-5 line-clamp-3">
+                                {event.event_description}
+                            </p>
+
+                            <div className="flex items-start gap-2">
+                                <Tag className="w-4 h-4 text-gray-500 flex-shrink-0 mt-1" />
+                                <div className="flex flex-wrap gap-1 md:gap-2">
+                                    {event.tags.slice(0, 3).map((tag, index) => (
+                                        <div key={index} className="flex items-center gap-1 px-3 md:px-4 lg:px-6 py-1 bg-gray-100 text-gray-700 text-xs md:text-sm lg:text-base rounded-full">
+                                            <span className="truncate">{tag}</span>
+                                        </div>
+                                    ))}
+                                    {event.tags.length > 3 && (
+                                        <div className="flex items-center px-3 md:px-4 py-1 bg-gray-200 text-gray-600 text-xs md:text-sm rounded-full">
+                                            +{event.tags.length - 3}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
-                    ))}
-                    {showViewAllButton && events.length > 0 && (
-                        <div className="flex justify-center pt-4 md:pt-6">
+
+                        <div className="md:ml-4 md:self-start">
                             <button
-                                onClick={onViewAll}
-                                className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm md:text-base"
+                                onClick={() => {
+                                    setSelectedEvent(event);
+                                    setIsModalOpen(true);
+                                }}
+                                className="w-full md:w-auto p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors cursor-pointer inline-flex items-center justify-center"
+                                title="詳細を表示"
                             >
-                                <ChevronsLeft className="w-4 h-4" />
-                                {events.length > maxDisplayCount ? 'すべてのイベントを見る' : 'イベント一覧へ'}
+                                <ExternalLink className="w-4 md:w-5 h-4 md:h-5" />
+                                <span className="md:hidden ml-2 text-sm">詳細</span>
                             </button>
                         </div>
-                    )}
+                    </div>
                 </div>
-            </div>
+            ))}
+            {showViewAllButton && events.length > 0 && (
+                <div className="flex justify-center pt-4 md:pt-6">
+                    <button
+                        onClick={onViewAll}
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm md:text-base"
+                    >
+                        <ChevronsLeft className="w-4 h-4" />
+                        {events.length > maxDisplayCount ? 'すべてのイベントを見る' : 'イベント一覧へ'}
+                    </button>
+                </div>
+            )}
+        </div>
+    );
 
+    return (
+        <>
+            {showContainer ? (
+                <div className="bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm">
+                    {showHeader && (
+                        <div className="flex justify-between items-center mb-6 md:mb-10">
+                            <h3 className="text-lg md:text-xl font-semibold text-gray-900">イベント履歴</h3>
+                        </div>
+                    )}
+                    {mainContent}
+                </div>
+            ) : (
+                <>
+                    {showHeader && (
+                        <div className="mb-6 md:mb-10">
+                            <h3 className="text-lg md:text-xl font-semibold text-gray-900">イベント履歴</h3>
+                        </div>
+                    )}
+                    {mainContent}
+                </>
+            )}
             {isModalOpen && selectedEvent && (
                 <div
                     className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4"
@@ -276,56 +314,58 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                 </div>
             )}
 
-            {isDeleteConfirmOpen && selectedEvent && (
-                <div
-                    className="fixed inset-0 flex items-center justify-center z-[60] p-4"
-                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
-                >
-                    <div className="bg-white rounded-lg max-w-md w-full mx-4">
-                        <div className="p-6">
-                            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
-                                <AlertTriangle className="w-6 h-6 text-red-600" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
-                                イベントを削除しますか？
-                            </h3>
-                            <p className="text-sm text-gray-600 text-center mb-2">
-                                「{selectedEvent.title}」を削除します。
-                            </p>
-                            <p className="text-sm text-red-600 text-center mb-6">
-                                この操作は取り消すことができません。
-                            </p>
+            {
+                isDeleteConfirmOpen && selectedEvent && (
+                    <div
+                        className="fixed inset-0 flex items-center justify-center z-[60] p-4"
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+                    >
+                        <div className="bg-white rounded-lg max-w-md w-full mx-4">
+                            <div className="p-6">
+                                <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                                    イベントを削除しますか？
+                                </h3>
+                                <p className="text-sm text-gray-600 text-center mb-2">
+                                    「{selectedEvent.title}」を削除します。
+                                </p>
+                                <p className="text-sm text-red-600 text-center mb-6">
+                                    この操作は取り消すことができません。
+                                </p>
 
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={cancelDeleteEvent}
-                                    disabled={isDeleting}
-                                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
-                                >
-                                    キャンセル
-                                </button>
-                                <button
-                                    onClick={confirmDeleteEvent}
-                                    disabled={isDeleting}
-                                    className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                                >
-                                    {isDeleting ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                            削除中...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Trash2 className="w-4 h-4" />
-                                            削除
-                                        </>
-                                    )}
-                                </button>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={cancelDeleteEvent}
+                                        disabled={isDeleting}
+                                        className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
+                                    >
+                                        キャンセル
+                                    </button>
+                                    <button
+                                        onClick={confirmDeleteEvent}
+                                        disabled={isDeleting}
+                                        className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {isDeleting ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                削除中...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Trash2 className="w-4 h-4" />
+                                                削除
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
         </>
     );
