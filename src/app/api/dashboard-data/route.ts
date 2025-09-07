@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
             if (eventIds.length > 0) {
                 const { data: eventsData, error: eventsError } = await supabase
                     .from('events')
-                    .select('*')
+                    .select('*, organizer')
                     .in('event_id', eventIds);
 
                 if (!eventsError) {
@@ -219,14 +219,15 @@ export async function POST(request: NextRequest) {
         }
 
         // 7. 最近のイベント履歴作成
-        const recentEvents = (notes || []).slice(0, 10).map((note: any, index: number) => {
+        const recentEvents = (notes || []).map((note: any, index: number) => {
             const relatedEvent = events.find(event => event.event_id === note.event_id);
-
+        
             return {
                 id: note.id || index + 1,
                 title: relatedEvent?.title || `イベント #${note.event_id || index + 1}`,
                 date: formatEventDate(relatedEvent?.started_at || note.updated_at || note.created_at),
-                time: formatEventTime(relatedEvent?.started_at),
+                // 🔧 修正: ended_at も渡す
+                time: formatEventTime(relatedEvent?.started_at, relatedEvent?.ended_at),
                 type: 'イベント',
                 organizer: getOrganizerName(relatedEvent),
                 venue: relatedEvent?.place || 'オンライン',
@@ -292,19 +293,32 @@ function formatEventDate(dateString: string | null): string {
     }
 }
 
-function formatEventTime(dateString: string | null): string {
-    if (!dateString) return '時間未定';
+function formatEventTime(startDateTime: string | null, endDateTime?: string | null): string {
+    if (!startDateTime) return '時間未定';
 
     try {
-        const date = new Date(dateString);
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const startDate = new Date(startDateTime);
+        const startHours = startDate.getHours().toString().padStart(2, '0');
+        const startMinutes = startDate.getMinutes().toString().padStart(2, '0');
+        
+        let timeStr = `${startHours}:${startMinutes}`;
 
-        const endDate = new Date(date.getTime() + 2 * 60 * 60 * 1000);
-        const endHours = endDate.getHours().toString().padStart(2, '0');
-        const endMinutes = endDate.getMinutes().toString().padStart(2, '0');
+        // 正確な終了時間がある場合のみ表示
+        if (endDateTime) {
+            try {
+                const endDate = new Date(endDateTime);
+                if (!isNaN(endDate.getTime())) {
+                    const endHours = endDate.getHours().toString().padStart(2, '0');
+                    const endMinutes = endDate.getMinutes().toString().padStart(2, '0');
+                    timeStr = `${timeStr}〜${endHours}:${endMinutes}`;
+                }
+            } catch {
+                // 終了時間が不正な場合は開始時間のみ表示
+            }
+        }
+        // ended_atがnullの場合は開始時間のみ表示（推定時間は表示しない）
 
-        return `${hours}:${minutes}〜${endHours}:${endMinutes}`;
+        return timeStr;
     } catch {
         return '時間エラー';
     }
@@ -313,40 +327,18 @@ function formatEventTime(dateString: string | null): string {
 function getOrganizerName(event: any): string {
     if (!event) return '主催者未定';
 
-    // 1. connpass APIから取得した主催者情報を最優先
+    // Supabaseの organizer カラムを最優先
+    if (event.organizer && event.organizer !== '主催者未定') {
+        return event.organizer;
+    }
+
+    // connpass APIから取得した主催者情報
     if (event.connpass_owner_text && event.connpass_owner_text.trim() !== '') {
         return event.connpass_owner_text.trim();
     }
 
-    // 2. 簡単なフォールバック処理
-    if (event.description) {
-        const cleanDescription = event.description
-
-            .replace(/<[^>]*>/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-
-        // シンプルなパターンマッチング
-        const patterns = [
-            /株式会社([^。、\n]+?)が主催/,
-            /株式会社([^。、\n]+?)が運営/,
-            /([A-Za-z\s]+Tech Hub)/
-        ];
-
-        for (const pattern of patterns) {
-            const match = cleanDescription.match(pattern);
-            if (match && match[1]) {
-                const result = match[1].replace(/\([^)]*\)/g, '').trim();
-                if (result.length > 2) {
-                    return `株式会社${result}`;
-                }
-            }
-        }
-    }
-
     return '主催者未定';
 }
-
 function getEventTags(eventId: number | null, allTags: any[]): string[] {
     if (!eventId || !allTags || allTags.length === 0) return [];
 

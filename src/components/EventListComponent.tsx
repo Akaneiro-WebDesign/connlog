@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { sanitizeEventDescription } from '@/lib/sanitizeEventDescription'; // 共通関数をimport
 import {
     ExternalLink,
     CalendarDays,
@@ -12,7 +13,8 @@ import {
     ChevronsLeft,
     Edit3,
     Trash2,
-    AlertTriangle
+    AlertTriangle,
+    ChevronsRight,
 } from 'lucide-react';
 
 // Event型定義
@@ -24,6 +26,8 @@ interface Event {
     type: string;
     organizer: string;
     venue: string;
+    place?: string;
+    address?: string;
     tags: string[];
     description: string;
     event_description: string;
@@ -38,6 +42,7 @@ interface EventListComponentProps {
     maxDisplayCount?: number;
     showHeader?: boolean;
     showContainer?: boolean;
+    showPagination?: boolean; // 🔧 ページネーション制御prop追加
     onViewAll?: () => void;
     onEdit?: (eventId: number) => void;
     onDelete?: (eventId: number) => void;
@@ -50,6 +55,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
     maxDisplayCount = 5,
     showHeader = true,
     showContainer = true,
+    showPagination = false, // 🔧 デフォルト: false（ダッシュボード向け）
     onViewAll,
     onEdit,
     onDelete,
@@ -58,9 +64,13 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
-    // 表示用にイベントをスライス
-    const displayEvents = events.slice(0, maxDisplayCount);
+    // 🔧 表示用にイベントをスライス（ページネーション有無で分岐）
+    const displayEvents = showPagination 
+        ? events.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+        : events.slice(0, maxDisplayCount);
 
     // イベントハンドラー関数
     const handleEditEvent = (eventId: number) => {
@@ -116,6 +126,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
             );
         }
     }
+
     const mainContent = (
         <div className="space-y-3 md:space-y-4">
             {displayEvents.map((event) => (
@@ -131,7 +142,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                                 <div className="flex items-center">
                                     <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
                                     <span className="px-2 py-0.5 text-gray-700 text-sm md:text-base rounded truncate">
-                                        {event.organizer}
+                                        {event.organizer || '主催者未定'}
                                     </span>
                                 </div>
                             </div>
@@ -147,11 +158,11 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
 
                             <div className="flex items-center gap-2 mb-3 md:mb-5">
                                 <MapPinned className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                <span className="text-sm md:text-base text-gray-500 truncate">{event.venue}</span>
+                                <span className="text-sm md:text-base text-gray-500 truncate">{event.place || event.venue}</span>
                             </div>
 
-                            <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-5 line-clamp-3">
-                                {event.event_description}
+                            <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-5">
+                                {sanitizeEventDescription(event.event_description, 100)}
                             </p>
 
                             <div className="flex items-start gap-2">
@@ -187,6 +198,8 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                     </div>
                 </div>
             ))}
+            
+            {/* View All Button - ダッシュボード用 */}
             {showViewAllButton && events.length > 0 && (
                 <div className="flex justify-center pt-4 md:pt-6">
                     <button
@@ -195,6 +208,59 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                     >
                         <ChevronsLeft className="w-4 h-4" />
                         {events.length > maxDisplayCount ? 'すべてのイベントを見る' : 'イベント一覧へ'}
+                    </button>
+                </div>
+            )}
+
+            {/* 🔧 ページネーション UI - EventSearchFormと統一デザイン */}
+            {showPagination && Math.ceil(events.length / ITEMS_PER_PAGE) > 1 && (
+                <div className="flex justify-center items-center mt-8 space-x-4">
+                    <button
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <ChevronsLeft />
+                    </button>
+                    
+                    <div className="flex items-center space-x-2">
+                        {/* ページ番号表示 - EventSearchFormと同じロジック */}
+                        {Array.from({ length: Math.min(5, Math.ceil(events.length / ITEMS_PER_PAGE)) }, (_, i) => {
+                            const totalPages = Math.ceil(events.length / ITEMS_PER_PAGE)
+                            let pageNumber
+                            
+                            if (totalPages <= 5) {
+                                pageNumber = i + 1
+                            } else if (currentPage <= 3) {
+                                pageNumber = i + 1
+                            } else if (currentPage >= totalPages - 2) {
+                                pageNumber = totalPages - 4 + i
+                            } else {
+                                pageNumber = currentPage - 2 + i
+                            }
+                            
+                            return (
+                                <button
+                                    key={pageNumber}
+                                    onClick={() => setCurrentPage(pageNumber)}
+                                    className={`w-10 h-10 rounded-lg transition-colors ${
+                                        pageNumber === currentPage
+                                            ? 'bg-blue-500 text-white'
+                                            : 'bg-gray-200 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    {pageNumber}
+                                </button>
+                            )
+                        })}
+                    </div>
+                    
+                    <button
+                        onClick={() => setCurrentPage(Math.min(Math.ceil(events.length / ITEMS_PER_PAGE), currentPage + 1))}
+                        disabled={currentPage === Math.ceil(events.length / ITEMS_PER_PAGE)}
+                        className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <ChevronsRight />
                     </button>
                 </div>
             )}
@@ -222,6 +288,8 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                     {mainContent}
                 </>
             )}
+            
+            {/* モーダル表示 */}
             {isModalOpen && selectedEvent && (
                 <div
                     className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4"
@@ -247,7 +315,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                                         <div className="flex items-center gap-1">
                                             <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
                                             <span className="text-gray-700 text-sm md:text-base">
-                                                {selectedEvent.organizer}
+                                                {selectedEvent.organizer || '主催者未定'}
                                             </span>
                                         </div>
                                     </div>
@@ -261,13 +329,16 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                                     </a>
                                     <div className="flex items-center gap-2 mb-3">
                                         <MapPinned className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                        <span className="text-sm md:text-base text-gray-500">{selectedEvent.venue}</span>
+                                        <span className="text-sm md:text-base text-gray-500">{selectedEvent.place || selectedEvent.venue}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <p className="text-sm md:text-base text-gray-600 mb-6 md:mb-8 whitespace-pre-wrap">
-                                {selectedEvent.event_description}
+                                {sanitizeEventDescription(
+                                    selectedEvent.catch || selectedEvent.event_description || selectedEvent.description || '',
+                                    150
+                                )}
                             </p>
                             <div className="mb-6">
                                 <div className="flex items-center gap-2 mb-4">
@@ -314,59 +385,57 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                 </div>
             )}
 
-            {
-                isDeleteConfirmOpen && selectedEvent && (
-                    <div
-                        className="fixed inset-0 flex items-center justify-center z-[60] p-4"
-                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
-                    >
-                        <div className="bg-white rounded-lg max-w-md w-full mx-4">
-                            <div className="p-6">
-                                <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
-                                    <AlertTriangle className="w-6 h-6 text-red-600" />
-                                </div>
-                                <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
-                                    イベントを削除しますか？
-                                </h3>
-                                <p className="text-sm text-gray-600 text-center mb-2">
-                                    「{selectedEvent.title}」を削除します。
-                                </p>
-                                <p className="text-sm text-red-600 text-center mb-6">
-                                    この操作は取り消すことができません。
-                                </p>
+            {/* 削除確認モーダル */}
+            {isDeleteConfirmOpen && selectedEvent && (
+                <div
+                    className="fixed inset-0 flex items-center justify-center z-[60] p-4"
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+                >
+                    <div className="bg-white rounded-lg max-w-md w-full mx-4">
+                        <div className="p-6">
+                            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                                <AlertTriangle className="w-6 h-6 text-red-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                                イベントを削除しますか？
+                            </h3>
+                            <p className="text-sm text-gray-600 text-center mb-2">
+                                「{selectedEvent.title}」を削除します。
+                            </p>
+                            <p className="text-sm text-red-600 text-center mb-6">
+                                この操作は取り消すことができません。
+                            </p>
 
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={cancelDeleteEvent}
-                                        disabled={isDeleting}
-                                        className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
-                                    >
-                                        キャンセル
-                                    </button>
-                                    <button
-                                        onClick={confirmDeleteEvent}
-                                        disabled={isDeleting}
-                                        className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        {isDeleting ? (
-                                            <>
-                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                削除中...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Trash2 className="w-4 h-4" />
-                                                削除
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={cancelDeleteEvent}
+                                    disabled={isDeleting}
+                                    className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
+                                >
+                                    キャンセル
+                                </button>
+                                <button
+                                    onClick={confirmDeleteEvent}
+                                    disabled={isDeleting}
+                                    className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            削除中...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Trash2 className="w-4 h-4" />
+                                            削除
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
                     </div>
-                )
-            }
-
+                </div>
+            )}
         </>
     );
 };

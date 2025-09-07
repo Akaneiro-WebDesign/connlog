@@ -6,7 +6,7 @@ import { useUser } from '@/components/UserProvider';
 import Sidebar from '@/components/Sidebar';
 import EventListComponent from '@/components/EventListComponent';
 import {
-    Calendar,
+    CalendarClock,
     CheckCircle
 } from 'lucide-react';
 
@@ -245,7 +245,7 @@ export default function EventsPage() {
 
                 <main className="flex-1 px-4 md:px-8 lg:px-28 py-6 md:py-8 lg:py-10">
                     <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
-                        <Calendar className="w-6 h-6 md:w-8 md:h-8 text-gray-700" />
+                        <CalendarClock className="w-6 h-6 md:w-8 md:h-8 text-gray-700" />
                         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">イベント履歴</h1>
                     </div>
 
@@ -310,6 +310,7 @@ export default function EventsPage() {
                             showViewAllButton={false}
                             showHeader={false}
                             showContainer={false}
+                            showPagination={true}
                             onEdit={handleEditEvent}
                             onDelete={confirmDeleteEvent}
                             isDeleting={isDeleting}
