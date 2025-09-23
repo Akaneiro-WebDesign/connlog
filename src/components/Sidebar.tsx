@@ -40,12 +40,12 @@ export default function Sidebar({ className }: SidebarProps) {
             icon: LayoutDashboard,
             href: '/dashboard',
         },
-        // {
-        //     id: 'search',
-        //     label: 'イベント登録',
-        //     icon: SearchCheck,
-        //     href: '/search',
-        // },
+        {
+            id: 'search',
+            label: 'イベント登録',
+            icon: SearchCheck,
+            href: '/search',
+        },
         {
             id: 'events',
             label: 'イベント履歴',
