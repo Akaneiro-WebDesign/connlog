@@ -8,10 +8,7 @@ import { Header } from '@/components/Header';
 import EventListComponent from '@/components/EventListComponent';
 import TagChartComponent from '@/components/TagChartComponent';
 import WeeklyChartComponent from '@/components/WeeklyChartComponent';
-import {
-    LayoutDashboard,
-    CheckCircle
-} from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
 interface DashboardStats {
     tagDistribution: Array<{
@@ -268,19 +265,8 @@ export default function DashboardPage() {
         <div className="flex min-h-screen">
             <Sidebar />
             <div className="flex-1 flex flex-col">
-                <header className="bg-white border-b border-gray-200 px-4 md:px-6 h-16 flex items-center">
-                    <div className="flex items-center justify-end w-full">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm" style={{ backgroundColor: '#FF8C42' }}>
-                            {user?.email?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                    </div>
-                </header>
-
+                <Header title="ダッシュボード" />
                 <main className="flex-1 px-4 md:px-8 lg:px-28 py-6 md:py-8 lg:py-10">
-                    <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
-                        <LayoutDashboard className="w-6 h-6 md:w-8 md:h-8 text-gray-700" />
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">ダッシュボード</h1>
-                    </div>
 
                     {successMessage && (
                         <div className="mb-4 md:mb-6">

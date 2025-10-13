@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useUser } from '@/components/UserProvider';
 import Sidebar from '@/components/Sidebar';
 import EventListComponent from '@/components/EventListComponent';
+import UserMenuDropdown from '@/components/UserMenuDropdown';
 import {
     CalendarClock,
     CheckCircle

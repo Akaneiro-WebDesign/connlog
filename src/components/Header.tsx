@@ -2,6 +2,7 @@
 
 import { useUser } from '@/components/UserProvider';
 import { colors, cn } from '@/lib/design-system';
+import UserMenuDropdown from '@/components/UserMenuDropdown';
 
 interface HeaderProps {
     title: string;
@@ -38,13 +39,8 @@ export function Header({ title, subtitle, actions, className }: HeaderProps) {
                                 {actions}
                             </div>
                         )}
-                        {/* ユーザーアバター */}
-                        <div
-                        className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-white font-medium text-xs md:text-sm flex-shrink-0"
-                        style={{ backgroundColor: '#FF8C42' }}
-                        >
-                        {user?.email?.charAt(0).toUpperCase() || 'U'}
-                        </div>
+                        {/* ユーザーメニュードロップダウン */}
+                        <UserMenuDropdown />
                     </div>
                 </div>
                 {/* モバイル用アクション */}
