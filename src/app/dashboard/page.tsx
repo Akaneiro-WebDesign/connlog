@@ -238,8 +238,23 @@ export default function DashboardPage() {
     const confirmDeleteEvent = async (eventId: number) => {
         try {
             setIsDeleting(true);
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // APIを呼び出して削除
+            const response = await fetch('/api/events/delete',{
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ event_id: eventId }),
+            });
 
+            const result = await response.json();
+
+            if (!response.ok){
+                throw new Error(result.error || '削除に失敗しました');
+            }
+
+            // 成功したらUIを更新
             if (stats) {
                 const updatedEvents = stats.recentEvents.filter(event => event.id !== eventId);
                 setStats({ ...stats, recentEvents: updatedEvents });
@@ -249,9 +264,15 @@ export default function DashboardPage() {
             if (deletedEvent) {
                 setSuccessMessage(`「${deletedEvent.title}」を削除しました。`);
             }
+
+            // データを再読み込み
+            await loadDashboardData();
+
         } catch (error) {
             console.error('削除エラー:', error);
-            setSuccessMessage('削除処理でエラーが発生しました。');
+            const errorMessage = error instanceof Error ?
+            error.message : '削除処理でエラーが発生しました。';
+            setSuccessMessage(`エラー:${errorMessage}`);
         } finally {
             setIsDeleting(false);
         }
