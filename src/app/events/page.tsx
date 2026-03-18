@@ -214,7 +214,6 @@ export default function EventsPage() {
       );
     }, 300);
 
-    console.log("編集機能:", `イベントID ${eventId} を編集します`);
   };
 
   const confirmDeleteEvent = async (event: RecentEvent) => {
