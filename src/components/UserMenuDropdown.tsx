@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/components/UserProvider';
-import { createClient } from '@/lib/supabase/browser';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { LogOut, User as UserIcon, Settings } from 'lucide-react';
 
 export default function UserMenuDropdown() {
@@ -11,7 +11,7 @@ export default function UserMenuDropdown() {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const { user } = useUser();
     const router = useRouter();
-    const supabase = createClient();
+    const supabase = createSupabaseBrowserClient();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

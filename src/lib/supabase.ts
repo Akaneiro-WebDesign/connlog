@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { createClient as createBrowserClient } from './supabase/browser';
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 // シングルトンインスタンスを作成
-export const supabase = createBrowserClient();
+export const supabase = createSupabaseBrowserClient();
 
-// 名前付きエクスポートも提供
-export { createClient } from './supabase/browser';
+// 既存コード互換用
+export const createClient = createSupabaseBrowserClient;

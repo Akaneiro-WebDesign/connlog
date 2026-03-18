@@ -2,11 +2,9 @@
  * ConnLogのイベント・タグ・メモ管理システム
  * connpassイベントをSupabaseデータベースに保存し、ユーザー固有のタグとメモを管理
  */
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabase = createSupabaseBrowserClient()
 
 /**
  * connpass APIレスポンスをSupabaseテーブル形式に変換
