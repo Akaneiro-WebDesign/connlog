@@ -1,326 +1,380 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useUser } from '@/components/UserProvider';
-import Sidebar from '@/components/Sidebar';
-import EventListComponent from '@/components/EventListComponent';
-import UserMenuDropdown from '@/components/UserMenuDropdown';
-import {
-    CalendarClock,
-    CheckCircle
-} from 'lucide-react';
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useUser } from "@/components/UserProvider";
+import Sidebar from "@/components/Sidebar";
+import EventListComponent from "@/components/EventListComponent";
+import { CalendarClock, CheckCircle } from "lucide-react";
 
+type RecentEvent = {
+  id: number | null;
+  noteId: string;
+  externalEventId?: number | null;
+  title: string;
+  date: string;
+  time: string;
+  type: string;
+  organizer: string;
+  venue: string;
+  tags: string[];
+  description: string;
+  event_description: string;
+  url?: string;
+  event_url?: string;
+};
 
 interface DashboardStats {
-    recentEvents: Array<{
-        id: number;
-        title: string;
-        date: string;
-        time: string;
-        type: string;
-        organizer: string;
-        venue: string;
-        tags: string[];
-        description: string;
-        event_description: string;
-        url?: string;
-        event_url?: string;
-    }>;
+  recentEvents: RecentEvent[];
 }
 
 export default function EventsPage() {
-    const { user, isLoading } = useUser();
-    const [mounted, setMounted] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [stats, setStats] = useState<DashboardStats | null>(null);
-    const [dataSource, setDataSource] = useState<'real' | 'fallback'>('fallback');
-    const [apiError, setApiError] = useState<string | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const router = useRouter();
+  const { user, isLoading } = useUser();
+  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [dataSource, setDataSource] = useState<"real" | "fallback">("fallback");
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const router = useRouter();
 
-    const fallbackData: DashboardStats = {
-        recentEvents: [
-            {
-                id: 1,
-                title: 'フォールバックデータ #1',
-                date: '2025年5月7日（水）',
-                time: '19:00〜21:00',
-                type: 'React勉強会',
-                organizer: 'フォールバックデータorganizer #1',
-                venue: 'オンライン',
-                tags: ['React', 'JavaScript', 'フロントエンド'],
-                description: 'フォールバックデータ #1のdescriptionです。',
-                event_description: 'フォールバックデータ #1のevent_descriptionです。',
-                url: 'https://connpass.com/event/123456/',
-                event_url: 'https://connpass.com/event/123456/'
-            },
-            {
-                id: 2,
-                title: 'フォールバックデータ #2',
-                date: '2025年5月7日（水）',
-                time: '19:00〜21:00',
-                type: 'Vue.js勉強会',
-                organizer: 'フォールバックデータorganizer #2',
-                venue: 'オンライン',
-                tags: ['Vue.js', 'JavaScript', 'フロントエンド'],
-                description: 'フォールバックデータ #2のdescriptionです。',
-                event_description: 'フォールバックデータ #2のevent_descriptionです。',
-                url: 'https://connpass.com/event/123457/',
-                event_url: 'https://connpass.com/event/123457/'
-            },
-            {
-                id: 3,
-                title: 'フォールバックデータ #3',
-                date: '2025年5月7日（水）',
-                time: '19:00〜21:00',
-                type: 'Node.js勉強会',
-                organizer: 'フォールバックデータorganizer #3',
-                venue: 'オンライン',
-                tags: ['Node.js', 'JavaScript', 'バックエンド'],
-                description: 'フォールバックデータ #3のdescriptionです。',
-                event_description: 'フォールバックデータ #3のevent_descriptionです。',
-                url: 'https://connpass.com/event/123458/',
-                event_url: 'https://connpass.com/event/123458/'
-            },
-            {
-                id: 4,
-                title: 'フォールバックデータ #4',
-                date: '2025年5月6日（火）',
-                time: '19:00〜21:00',
-                type: 'Python勉強会',
-                organizer: 'フォールバックデータorganizer #4',
-                venue: 'オンライン',
-                tags: ['Python', 'データサイエンス', 'AI'],
-                description: 'フォールバックデータ #4のdescriptionです。',
-                event_description: 'フォールバックデータ #4のevent_descriptionです。',
-                url: 'https://connpass.com/event/123459/',
-                event_url: 'https://connpass.com/event/123459/'
-            },
-            {
-                id: 5,
-                title: 'フォールバックデータ #5',
-                date: '2025年5月5日（月）',
-                time: '19:00〜21:00',
-                type: 'TypeScript勉強会',
-                organizer: 'フォールバックデータorganizer #5',
-                venue: 'オンライン',
-                tags: ['TypeScript', 'JavaScript', 'フロントエンド'],
-                description: 'フォールバックデータ #5のdescriptionです。',
-                event_description: 'フォールバックデータ #5のevent_descriptionです。',
-                url: 'https://connpass.com/event/123460/',
-                event_url: 'https://connpass.com/event/123460/'
-            },
-            {
-                id: 6,
-                title: 'フォールバックデータ #6',
-                date: '2025年5月4日（日）',
-                time: '14:00〜16:00',
-                type: 'Go勉強会',
-                organizer: 'フォールバックデータorganizer #6',
-                venue: 'オンライン',
-                tags: ['Go', 'バックエンド', 'サーバー'],
-                description: 'フォールバックデータ #6のdescriptionです。',
-                event_description: 'フォールバックデータ #6のevent_descriptionです。',
-                url: 'https://connpass.com/event/123461/',
-                event_url: 'https://connpass.com/event/123461/'
-            }
-        ]
-    };
+  const fallbackData: DashboardStats = {
+    recentEvents: [
+      {
+        id: 1,
+        noteId: "fallback-note-1",
+        externalEventId: 100001,
+        title: "フォールバックデータ #1",
+        date: "2025年5月7日（水）",
+        time: "19:00〜21:00",
+        type: "React勉強会",
+        organizer: "フォールバックデータorganizer #1",
+        venue: "オンライン",
+        tags: ["React", "JavaScript", "フロントエンド"],
+        description: "フォールバックデータ #1のdescriptionです。",
+        event_description: "フォールバックデータ #1のevent_descriptionです。",
+        url: "https://connpass.com/event/123456/",
+        event_url: "https://connpass.com/event/123456/",
+      },
+      {
+        id: 2,
+        noteId: "fallback-note-2",
+        externalEventId: 100002,
+        title: "フォールバックデータ #2",
+        date: "2025年5月7日（水）",
+        time: "19:00〜21:00",
+        type: "Vue.js勉強会",
+        organizer: "フォールバックデータorganizer #2",
+        venue: "オンライン",
+        tags: ["Vue.js", "JavaScript", "フロントエンド"],
+        description: "フォールバックデータ #2のdescriptionです。",
+        event_description: "フォールバックデータ #2のevent_descriptionです。",
+        url: "https://connpass.com/event/123457/",
+        event_url: "https://connpass.com/event/123457/",
+      },
+      {
+        id: 3,
+        noteId: "fallback-note-3",
+        externalEventId: 100003,
+        title: "フォールバックデータ #3",
+        date: "2025年5月7日（水）",
+        time: "19:00〜21:00",
+        type: "Node.js勉強会",
+        organizer: "フォールバックデータorganizer #3",
+        venue: "オンライン",
+        tags: ["Node.js", "JavaScript", "バックエンド"],
+        description: "フォールバックデータ #3のdescriptionです。",
+        event_description: "フォールバックデータ #3のevent_descriptionです。",
+        url: "https://connpass.com/event/123458/",
+        event_url: "https://connpass.com/event/123458/",
+      },
+      {
+        id: 4,
+        noteId: "fallback-note-4",
+        externalEventId: 100004,
+        title: "フォールバックデータ #4",
+        date: "2025年5月6日（火）",
+        time: "19:00〜21:00",
+        type: "Python勉強会",
+        organizer: "フォールバックデータorganizer #4",
+        venue: "オンライン",
+        tags: ["Python", "データサイエンス", "AI"],
+        description: "フォールバックデータ #4のdescriptionです。",
+        event_description: "フォールバックデータ #4のevent_descriptionです。",
+        url: "https://connpass.com/event/123459/",
+        event_url: "https://connpass.com/event/123459/",
+      },
+      {
+        id: 5,
+        noteId: "fallback-note-5",
+        externalEventId: 100005,
+        title: "フォールバックデータ #5",
+        date: "2025年5月5日（月）",
+        time: "19:00〜21:00",
+        type: "TypeScript勉強会",
+        organizer: "フォールバックデータorganizer #5",
+        venue: "オンライン",
+        tags: ["TypeScript", "JavaScript", "フロントエンド"],
+        description: "フォールバックデータ #5のdescriptionです。",
+        event_description: "フォールバックデータ #5のevent_descriptionです。",
+        url: "https://connpass.com/event/123460/",
+        event_url: "https://connpass.com/event/123460/",
+      },
+      {
+        id: 6,
+        noteId: "fallback-note-6",
+        externalEventId: 100006,
+        title: "フォールバックデータ #6",
+        date: "2025年5月4日（日）",
+        time: "14:00〜16:00",
+        type: "Go勉強会",
+        organizer: "フォールバックデータorganizer #6",
+        venue: "オンライン",
+        tags: ["Go", "バックエンド", "サーバー"],
+        description: "フォールバックデータ #6のdescriptionです。",
+        event_description: "フォールバックデータ #6のevent_descriptionです。",
+        url: "https://connpass.com/event/123461/",
+        event_url: "https://connpass.com/event/123461/",
+      },
+    ],
+  };
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-    useEffect(() => {
-        if (isLoading || !mounted) return;
-        if (!user) {
-            router.replace('/login');
-            return;
-        }
-    }, [user, isLoading, mounted, router]);
+  useEffect(() => {
+    if (isLoading || !mounted) return;
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+  }, [user, isLoading, mounted, router]);
 
-    useEffect(() => {
-        if (!user) return;
-        loadDashboardData();
-    }, [user]);
+  useEffect(() => {
+    if (!user) return;
+    loadDashboardData();
+  }, [user]);
 
-    useEffect(() => {
-        if (successMessage) {
-            const timer = setTimeout(() => {
-                setSuccessMessage(null);
-            }, 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [successMessage]);
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
-    const loadDashboardData = async () => {
-        try {
-            setLoading(true);
-            setApiError(null);
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      setApiError(null);
 
-            const response = await fetch('/api/dashboard-data', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user_id: user.id
-                })
-            });
+      const response = await fetch("/api/dashboard-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+        }),
+      });
 
-            if (!response.ok) {
-                throw new Error(`API呼び出しエラー: ${response.status} ${response.statusText}`);
-            }
-            const data = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          `API呼び出しエラー: ${response.status} ${response.statusText}`,
+        );
+      }
+      const data = await response.json();
 
-            if (
-                data.recentEvents.length === 0
-            ) {
-                console.log('データが空のため、フォールバックデータを使用します');
-                setDataSource('fallback');
-                setStats(fallbackData);
-            } else {
-                console.log('実データを取得しました:', data);
-                setDataSource('real');
-                setStats({ recentEvents: data.recentEvents });
-            }
-        } catch (error) {
-            const errorMessage = error instanceof Error ?
-                error.message : 'データ取得エラー';
-            console.error('データ取得エラー:', error);
-            setApiError(errorMessage);
-            setDataSource('fallback');
-            setStats(fallbackData);
-        } finally {
-            setLoading(false);
-        }
-    };
+      if (data.recentEvents.length === 0) {
+        setDataSource("fallback");
+        setStats(fallbackData);
+      } else {
+        setDataSource("real");
+        setStats({ recentEvents: data.recentEvents });
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "データ取得エラー";
+      console.error("データ取得エラー:", error);
+      setApiError(errorMessage);
+      setDataSource("fallback");
+      setStats(fallbackData);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleEditEvent = (eventId: number) => {
-        setTimeout(() => {
-            setSuccessMessage(`イベント（ID: ${eventId}）の編集ページに移動しました。\n※編集機能は開発中です。`);
-        }, 300);
+  const handleEditEvent = (eventId: number) => {
+    setTimeout(() => {
+      setSuccessMessage(
+        `イベント（ID: ${eventId}）の編集ページに移動しました。\n※編集機能は開発中です。`,
+      );
+    }, 300);
 
-        console.log('編集機能:', `イベントID ${eventId} を編集します`);
-    };
+    console.log("編集機能:", `イベントID ${eventId} を編集します`);
+  };
 
-    const confirmDeleteEvent = async (eventId: number) => {
-        try {
-            setIsDeleting(true);
-            await new Promise(resolve => setTimeout(resolve, 2000));
+  const confirmDeleteEvent = async (event: RecentEvent) => {
+    try {
+      setIsDeleting(true);
 
-            if (stats) {
-                const updatedEvents = stats.recentEvents.filter(event => event.id !== eventId);
-                setStats({ recentEvents: updatedEvents });
-            }
+      const response = await fetch("/api/events/delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event_id: event.id,
+          note_id: event.noteId,
+          external_event_id: event.externalEventId,
+        }),
+      });
 
-            const deletedEvent = stats?.recentEvents.find(event => event.id === eventId);
-            if (deletedEvent) {
-                setSuccessMessage(`「${deletedEvent.title}」を削除しました。`);
-            }
-        } catch (error) {
-            console.error('削除エラー:', error);
-            setSuccessMessage('削除処理でエラーが発生しました。');
-        } finally {
-            setIsDeleting(false);
-        }
-    };
+      const result = await response.json();
 
-    if (!mounted) return null;
-    if (isLoading) return <div className="flex items-center justify-center min-h-screen text-gray-600">ログイン状態を確認中...</div>;
-    if (!user) return null;
+      if (!response.ok) {
+        throw new Error(result.error || "削除に失敗しました");
+      }
 
+      if (stats) {
+        const updatedEvents = stats.recentEvents.filter(
+          (item) => item.noteId !== event.noteId,
+        );
+        setStats({ recentEvents: updatedEvents });
+      }
+      setSuccessMessage(`「${event.title}」を削除しました。`);
+
+      await loadDashboardData();
+    } catch (error) {
+      console.error("削除エラー:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "削除処理でエラーが発生しました。";
+      setSuccessMessage(`エラー: ${errorMessage}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (!mounted) return null;
+  if (isLoading)
     return (
-        <div className="flex min-h-screen">
-            <Sidebar />
-            <div className="flex-1 flex flex-col">
-                <header className="bg-white border-b border-gray-200 px-4 md:px-6 h-16 flex items-center">
-                    <div className="flex items-center justify-end w-full">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm" style={{ backgroundColor: '#FF8C42' }}>
-                            {user?.email?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                    </div>
-                </header>
-
-                <main className="flex-1 px-4 md:px-8 lg:px-28 py-6 md:py-8 lg:py-10">
-                    <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
-                        <CalendarClock className="w-6 h-6 md:w-8 md:h-8 text-gray-700" />
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">イベント履歴</h1>
-                    </div>
-
-                    {successMessage && (
-                        <div className="mb-4 md:mb-6">
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                <div className="flex items-start gap-3">
-                                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                                    <div className="text-green-800 text-sm whitespace-pre-line">
-                                        {successMessage}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="mb-4 md:mb-6 space-y-2">
-                        {apiError && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                <div className="flex items-center">
-                                    <div className="text-red-800 text-sm">
-                                        <strong>API エラー:</strong> {apiError}
-                                        <br />
-                                        <span className="text-red-600">フォールバックデータを表示しています。</span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        {!loading && !apiError && (
-                            <div className={`border rounded-lg p-3 ${dataSource === 'real'
-                                ? 'bg-green-50 border-green-200'
-                                : 'bg-blue-50 border-blue-200'
-                                }`}>
-                                <div className="text-sm">
-                                    {dataSource === 'real' ? (
-                                        <span className="text-green-800">
-                                            <strong>実データ表示中:</strong> Supabaseから最新データを取得しました。
-                                        </span>
-                                    ) : (
-                                        <span className="text-blue-800">
-                                            <strong>デモデータ表示中:</strong>登録データがないため、サンプルデータを表示しています。
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {loading ? (
-                        <div className="space-y-4 md:space-y-6">
-                            <div className="h-6 bg-gray-200 rounded mb-4"></div>
-                            <div className="space-y-4">
-                                {[1, 2, 3].map(i => (
-                                    <div key={i} className="h-16 md:h-20 bg-gray-100 rounded"></div>
-                                ))}
-                            </div>
-                        </div>
-                    ) : stats ? (
-                        <EventListComponent
-                            events={stats.recentEvents}
-                            maxDisplayCount={20}
-                            showViewAllButton={false}
-                            showHeader={false}
-                            showContainer={false}
-                            showPagination={true}
-                            onEdit={handleEditEvent}
-                            onDelete={confirmDeleteEvent}
-                            isDeleting={isDeleting}
-                        />
-                    ) : (
-                        <div className="text-center py-8 text-gray-500">データの読み込みに失敗しました</div>
-                    )}
-                </main>
-            </div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen text-gray-600">
+        ログイン状態を確認中...
+      </div>
     );
+  if (!user) return null;
+
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <header className="bg-white border-b border-gray-200 px-4 md:px-6 h-16 flex items-center">
+          <div className="flex items-center justify-end w-full">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm"
+              style={{ backgroundColor: "#FF8C42" }}
+            >
+              {user?.email?.charAt(0).toUpperCase() || "U"}
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 px-4 md:px-8 lg:px-28 py-6 md:py-8 lg:py-10">
+          <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+            <CalendarClock className="w-6 h-6 md:w-8 md:h-8 text-gray-700" />
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              イベント履歴
+            </h1>
+          </div>
+
+          {successMessage && (
+            <div className="mb-4 md:mb-6">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-green-800 text-sm whitespace-pre-line">
+                    {successMessage}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mb-4 md:mb-6 space-y-2">
+            {apiError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="flex items-center">
+                  <div className="text-red-800 text-sm">
+                    <strong>API エラー:</strong> {apiError}
+                    <br />
+                    <span className="text-red-600">
+                      フォールバックデータを表示しています。
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+            {!loading && !apiError && (
+              <div
+                className={`border rounded-lg p-3 ${
+                  dataSource === "real"
+                    ? "bg-green-50 border-green-200"
+                    : "bg-blue-50 border-blue-200"
+                }`}
+              >
+                <div className="text-sm">
+                  {dataSource === "real" ? (
+                    <span className="text-green-800">
+                      <strong>実データ表示中:</strong>{" "}
+                      Supabaseから最新データを取得しました。
+                    </span>
+                  ) : (
+                    <span className="text-blue-800">
+                      <strong>デモデータ表示中:</strong>
+                      登録データがないため、サンプルデータを表示しています。
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {loading ? (
+            <div className="space-y-4 md:space-y-6">
+              <div className="h-6 bg-gray-200 rounded mb-4"></div>
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-16 md:h-20 bg-gray-100 rounded"
+                  ></div>
+                ))}
+              </div>
+            </div>
+          ) : stats ? (
+            <EventListComponent
+              events={stats.recentEvents}
+              maxDisplayCount={20}
+              showViewAllButton={false}
+              showHeader={false}
+              showContainer={false}
+              showPagination={true}
+              onEdit={handleEditEvent}
+              onDelete={confirmDeleteEvent}
+              isDeleting={isDeleting}
+            />
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              データの読み込みに失敗しました
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
 }
