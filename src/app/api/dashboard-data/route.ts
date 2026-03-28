@@ -14,7 +14,11 @@ const TAG_COLORS = [
 ];
 
 export async function POST(request: NextRequest) {
+  const totalStart = performance.now();
+
   try {
+    console.log("[dashboard-data] start");
+
     // 環境変数チェック
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -30,7 +34,14 @@ export async function POST(request: NextRequest) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    const bodyStart = performance.now();
     const body = await request.json();
+    console.log(
+      "[dashboard-data] request.json:",
+      Math.round(performance.now() - bodyStart),
+      "ms",
+    );
+
     const { user_id } = body;
 
     if (!user_id) {
@@ -40,40 +51,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. notesテーブル取得
-    const { data: notes, error: notesError } = await supabase
-      .from("notes")
-      .select("*")
-      .eq("user_id", user_id)
-      .order("updated_at", { ascending: false });
+    // 1. notes と tags を同時に取得
+    const dbStart = performance.now();
+
+    const [notesResult, tagsResult] = await Promise.all([
+      supabase
+        .from("notes")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("updated_at", { ascending: false }),
+
+      supabase.from("tags").select("*").eq("owner_id", user_id),
+    ]);
+
+    const { data: notes, error: notesError } = notesResult;
+    const { data: tags, error: tagsError } = tagsResult;
+
+    console.log(
+      "[dashboard-data] notes + tags fetch:",
+      Math.round(performance.now() - dbStart),
+      "ms",
+      {
+        notesCount: notes?.length ?? 0,
+        tagsCount: tags?.length ?? 0,
+      },
+    );
 
     if (notesError) {
+      console.error("[dashboard-data] notesError:", notesError);
       return NextResponse.json(
         {
           error: "Failed to fetch notes data",
+          details: notesError.message,
         },
         { status: 500 },
       );
     }
 
-    // 2. tagsテーブル取得
-    const { data: tags, error: tagsError } = await supabase
-      .from("tags")
-      .select("*")
-      .eq("owner_id", user_id);
-
     if (tagsError) {
+      console.error("[dashboard-data] tagsError:", tagsError);
       return NextResponse.json(
         {
           error: "Failed to fetch tags data",
+          details: tagsError.message,
         },
         { status: 500 },
       );
     }
 
-    // 3. eventsテーブル取得
+    // 2. events テーブル取得
     let events: any[] = [];
     if (notes && notes.length > 0) {
+      const eventsStart = performance.now();
+
       const eventIds = [
         ...new Set(
           notes.map((note) => note.event_id).filter((id) => id != null),
@@ -86,20 +116,64 @@ export async function POST(request: NextRequest) {
           .select("*, organizer")
           .in("event_id", eventIds);
 
-        if (!eventsError) {
+        if (eventsError) {
+          console.error("[dashboard-data] eventsError:", eventsError);
+        } else {
           events = eventsData || [];
         }
       }
+
+      console.log(
+        "[dashboard-data] events fetch:",
+        Math.round(performance.now() - eventsStart),
+        "ms",
+        {
+          eventIdsCount: eventIds.length,
+          eventsCount: events.length,
+        },
+      );
     }
 
     // データが空の場合は空のレスポンスを返す
     if ((!notes || notes.length === 0) && (!tags || tags.length === 0)) {
+      console.log(
+        "[dashboard-data] total:",
+        Math.round(performance.now() - totalStart),
+        "ms",
+      );
+
       return NextResponse.json({
         tagDistribution: [],
         weeklyParticipation: [],
         recentEvents: [],
       });
     }
+
+    // 3. find/filter を減らすための Map を作る
+    const mapStart = performance.now();
+
+    const eventMap = new Map<number, any>();
+    for (const event of events) {
+      if (event?.event_id != null) {
+        eventMap.set(event.event_id, event);
+      }
+    }
+
+    const tagsMap = new Map<number, string[]>();
+    for (const tag of tags || []) {
+      if (tag?.event_id == null) continue;
+
+      const tagName = tag.tag_name || tag.name || "タグ";
+      const currentTags = tagsMap.get(tag.event_id) ?? [];
+      currentTags.push(tagName);
+      tagsMap.set(tag.event_id, currentTags);
+    }
+
+    console.log(
+      "[dashboard-data] map build:",
+      Math.round(performance.now() - mapStart),
+      "ms",
+    );
 
     // 4. タグ別割合の計算
     const tagCount: Record<string, number> = {};
@@ -124,6 +198,8 @@ export async function POST(request: NextRequest) {
       .sort((a, b) => b.value - a.value);
 
     // 5. 週ごとの参加数計算（イベント開催日ベース）
+    const weeklyStart = performance.now();
+
     const weeklyCount: Record<string, number> = {};
     const now = new Date();
 
@@ -138,22 +214,18 @@ export async function POST(request: NextRequest) {
     // notesの実際のイベント開催日を使用
     if (notes && notes.length > 0) {
       notes.forEach((note: any) => {
-        // 対応するイベントの開催日を取得
-        const relatedEvent = events.find(
-          (event) => event.event_id === note.event_id,
-        );
+        const relatedEvent = eventMap.get(note.event_id);
 
-        let eventDate = null;
+        let eventDate: string | null = null;
         if (relatedEvent?.started_at) {
           eventDate = relatedEvent.started_at;
         } else {
-          // イベント開催日が見つからない場合はノートの作成日を使用
           const possibleDates = [
             note.updated_at,
             note.created_at,
             note.date,
             note.event_date,
-          ].filter((d) => d != null && d !== "");
+          ].filter((d) => typeof d === "string" && d !== "");
 
           if (possibleDates.length > 0) {
             eventDate = possibleDates[0];
@@ -175,22 +247,22 @@ export async function POST(request: NextRequest) {
               if (weekKey in weeklyCount) {
                 weeklyCount[weekKey]++;
               } else {
-                // 範囲外の場合、最新週に追加
                 const latestWeekKey = Object.keys(weeklyCount).sort().pop();
-                const latestWeekDate = parseWeekKey(latestWeekKey!);
-                if (date >= latestWeekDate) {
-                  weeklyCount[latestWeekKey!]++;
+                if (latestWeekKey) {
+                  const latestWeekDate = parseWeekKey(latestWeekKey);
+                  if (date >= latestWeekDate) {
+                    weeklyCount[latestWeekKey]++;
+                  }
                 }
               }
             }
-          } catch (error) {
+          } catch {
             // 日付解析エラーは無視
           }
         }
       });
     }
 
-    // 5. 週別データに変換
     const sortedWeekKeys = Object.keys(weeklyCount).sort();
     const weeklyParticipation = [
       { week: "4週間前", count: weeklyCount[sortedWeekKeys[0]] || 0 },
@@ -200,12 +272,24 @@ export async function POST(request: NextRequest) {
       { week: "今週", count: weeklyCount[sortedWeekKeys[4]] || 0 },
     ];
 
+    console.log(
+      "[dashboard-data] weeklyParticipation build:",
+      Math.round(performance.now() - weeklyStart),
+      "ms",
+    );
+
     // 6. connpass APIから主催者情報を取得
-    if (events && events.length > 0) {
+    // organizerが既にある場合は呼ばない
+
+    const connpassStart = performance.now();
+    if (events.length > 0) {
       for (let i = 0; i < events.length; i++) {
         const event = events[i];
-        if (event.event_id) {
+        const alreadyHasOrganizer =
+          event.organizer && event.organizer !== "主催者未定";
+        if (event.event_id && !alreadyHasOrganizer) {
           try {
+            const oneFetchStart = performance.now();
             const connpassResponse = await fetch(
               `https://connpass.com/api/v2/events/?event_id=${event.event_id}`,
               {
@@ -222,20 +306,23 @@ export async function POST(request: NextRequest) {
               if (connpassData.events && connpassData.events.length > 0) {
                 const connpassEvent = connpassData.events[0];
 
-                // connpass APIから取得した主催者情報を統合
                 event.connpass_owner_text = connpassEvent.owner_text;
               }
             } else if (connpassResponse.status === 429) {
-              // Rate Limitの場合は少し待機してスキップ
               await new Promise((resolve) => setTimeout(resolve, 1000));
             }
 
-            // API制限対策：各リクエスト間に待機
             if (i < events.length - 1) {
               await new Promise((resolve) => setTimeout(resolve, 300));
             }
+
+            console.log(
+              "[dashboard-data] connpass one:",
+              event.event_id,
+              Math.round(performance.now() - oneFetchStart),
+              "ms",
+            );
           } catch (error) {
-            // エラーの場合はスキップして続行
             console.error(
               `connpass API error for event ${event.event_id}:`,
               error,
@@ -245,11 +332,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    console.log(
+      "[dashboard-data] connpass total:",
+      Math.round(performance.now() - connpassStart),
+      "ms",
+    );
+
     // 7. 最近のイベント履歴作成
+    const recentEventsStart = performance.now();
+
     const recentEvents = (notes || []).map((note: any, index: number) => {
-      const relatedEvent = events.find(
-        (event) => event.event_id === note.event_id,
-      );
+      const relatedEvent = eventMap.get(note.event_id);
 
       return {
         id: relatedEvent?.id ?? null,
@@ -263,7 +356,7 @@ export async function POST(request: NextRequest) {
         type: "イベント",
         organizer: getOrganizerName(relatedEvent),
         venue: relatedEvent?.place || "オンライン",
-        tags: getEventTags(note.event_id, tags),
+        tags: (tagsMap.get(note.event_id) ?? []).slice(0, 3),
         description: note.note || "メモはありません",
         event_description:
           relatedEvent?.catch ||
@@ -277,15 +370,32 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    console.log(
+      "[dashboard-data] recentEvents build:",
+      Math.round(performance.now() - recentEventsStart),
+      "ms",
+    );
+
     const dashboardStats = {
       tagDistribution,
       weeklyParticipation,
       recentEvents,
     };
 
+    console.log(
+      "[dashboard-data] total:",
+      Math.round(performance.now() - totalStart),
+      "ms",
+    );
+
     return NextResponse.json(dashboardStats);
   } catch (error) {
     console.error("dashboard-data unexpected error:", error);
+    console.log(
+      "[dashboard-data] total until error:",
+      Math.round(performance.now() - totalStart),
+      "ms",
+    );
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -307,9 +417,9 @@ function getWeekKey(date: Date): string {
   monday.setHours(0, 0, 0, 0);
   const year = monday.getFullYear();
   const month = (monday.getMonth() + 1).toString().padStart(2, "0");
-  const day_str = monday.getDate().toString().padStart(2, "0");
+  const dayStr = monday.getDate().toString().padStart(2, "0");
 
-  return `${year}-${month}-${day_str}`;
+  return `${year}-${month}-${dayStr}`;
 }
 
 function parseWeekKey(weekKey: string): Date {
@@ -348,7 +458,6 @@ function formatEventTime(
 
     let timeStr = `${startHours}:${startMinutes}`;
 
-    // 正確な終了時間がある場合のみ表示
     if (endDateTime) {
       try {
         const endDate = new Date(endDateTime);
@@ -361,7 +470,6 @@ function formatEventTime(
         // 終了時間が不正な場合は開始時間のみ表示
       }
     }
-    // ended_atがnullの場合は開始時間のみ表示（推定時間は表示しない）
 
     return timeStr;
   } catch {
@@ -372,23 +480,13 @@ function formatEventTime(
 function getOrganizerName(event: any): string {
   if (!event) return "主催者未定";
 
-  // Supabaseの organizer カラムを最優先
   if (event.organizer && event.organizer !== "主催者未定") {
     return event.organizer;
   }
 
-  // connpass APIから取得した主催者情報
   if (event.connpass_owner_text && event.connpass_owner_text.trim() !== "") {
     return event.connpass_owner_text.trim();
   }
 
   return "主催者未定";
-}
-function getEventTags(eventId: number | null, allTags: any[]): string[] {
-  if (!eventId || !allTags || allTags.length === 0) return [];
-
-  return allTags
-    .filter((tag) => tag.event_id === eventId)
-    .map((tag) => tag.tag_name || tag.name || "タグ")
-    .slice(0, 3);
 }

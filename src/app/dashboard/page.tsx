@@ -172,31 +172,19 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (isLoading || !mounted) return;
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
-  }, [user, isLoading, mounted, router]);
+    if (!mounted || isLoading || !user?.id) return;
+    loadDashboardData(user.id);
+  }, [mounted, isLoading, user?.id]);
 
-  useEffect(() => {
-    if (!user) return;
-    loadDashboardData();
-  }, [user]);
-
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (userId: string) => {
     try {
       setLoading(true);
       setApiError(null);
+
+      console.log("[dashboard] loadDashboardData called:", {
+        userId,
+        time: new Date().toISOString(),
+      });
 
       const response = await fetch("/api/dashboard-data", {
         method: "POST",
@@ -204,7 +192,7 @@ export default function DashboardPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: user.id,
+          user_id: userId,
         }),
       });
 
@@ -289,7 +277,9 @@ export default function DashboardPage() {
       setSuccessMessage(`「${event.title}」を削除しました。`);
 
       // データを再読み込み
-      await loadDashboardData();
+      if (user?.id) {
+        await loadDashboardData(user.id);
+      }
     } catch (error) {
       console.error("削除エラー:", error);
       const errorMessage =

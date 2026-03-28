@@ -153,23 +153,19 @@ export default function EventsPage() {
   }, [user, isLoading, mounted, router]);
 
   useEffect(() => {
-    if (!user) return;
-    loadDashboardData();
-  }, [user]);
+    if (!mounted || isLoading || !user?.id) return;
+    loadDashboardData(user.id);
+  }, [mounted, isLoading, user?.id]);
 
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (userId: string) => {
     try {
       setLoading(true);
       setApiError(null);
+
+      console.log("[events] loadDashboardData called:", {
+        userId,
+        time: new Date().toISOString(),
+      });
 
       const response = await fetch("/api/dashboard-data", {
         method: "POST",
@@ -177,7 +173,7 @@ export default function EventsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: user.id,
+          user_id: userId,
         }),
       });
 
@@ -205,15 +201,6 @@ export default function EventsPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleEditEvent = (eventId: number) => {
-    setTimeout(() => {
-      setSuccessMessage(
-        `イベント（ID: ${eventId}）の編集ページに移動しました。\n※編集機能は開発中です。`,
-      );
-    }, 300);
-
   };
 
   const confirmDeleteEvent = async (event: RecentEvent) => {
@@ -246,7 +233,9 @@ export default function EventsPage() {
       }
       setSuccessMessage(`「${event.title}」を削除しました。`);
 
-      await loadDashboardData();
+      if (user?.id) {
+        await loadDashboardData(user.id);
+      }
     } catch (error) {
       console.error("削除エラー:", error);
       const errorMessage =
@@ -363,7 +352,7 @@ export default function EventsPage() {
               showHeader={false}
               showContainer={false}
               showPagination={true}
-              onEdit={handleEditEvent}
+              onEdit={() => {}}
               onDelete={confirmDeleteEvent}
               isDeleting={isDeleting}
             />
