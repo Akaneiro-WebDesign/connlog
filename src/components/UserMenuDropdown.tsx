@@ -1,13 +1,22 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/components/UserProvider';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
-import { LogOut, User as UserIcon, Settings } from 'lucide-react';
+import { LogOut, UserCog } from 'lucide-react';
+
+type ProfileResponse = {
+    profile: {
+    displayName: string;
+    bio: string;
+        };
+    };
 
 export default function UserMenuDropdown() {
     const [isOpen, setIsOpen] = useState(false);
+    const [profileDisplayName, setProfileDisplayName] = useState('');
+    const [isProfileLoaded, setIsProfileLoaded] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const { user } = useUser();
     const router = useRouter();
@@ -15,7 +24,10 @@ export default function UserMenuDropdown() {
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target as Node)
+            ) {
                 setIsOpen(false);
             }
         };
@@ -29,6 +41,36 @@ export default function UserMenuDropdown() {
         };
     }, [isOpen]);
 
+    useEffect(() => {
+        if (!user) {
+            setProfileDisplayName('');
+            setIsProfileLoaded(true);
+            return;
+        }
+
+        setIsProfileLoaded(false);
+
+        const fetchProfile = async () => {
+            try {
+        const response = await fetch('/api/profile', { cache: 'no-store' });
+        const result = await response.json();
+
+        if (!response.ok) {
+            setIsProfileLoaded(true);
+        return;
+        }
+
+        const profile = (result as ProfileResponse).profile;
+        setProfileDisplayName(profile.displayName ?? '');
+    } catch {
+        // 失敗時はfallbackを使う
+    } finally {
+    setIsProfileLoaded(true);
+        }
+    };
+    fetchProfile();
+    }, [user?.id]);
+
     const handleLogout = async () => {
         const { error } = await supabase.auth.signOut();
         if (error) {
@@ -39,8 +81,21 @@ export default function UserMenuDropdown() {
     };
 
     // ユーザー表示名とイニシャル
-    const displayName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'ユーザー';
-    const initial = user?.email?.charAt(0).toUpperCase() || 'U';
+    const displayName = isProfileLoaded
+    ? profileDisplayName.trim() ||
+        user?.user_metadata?.name ||
+        user?.email?.split('@')[0] ||
+        'ユーザー'
+        :'';
+    const initial = useMemo(() => {
+        if (!isProfileLoaded) return'';
+        const base =
+        profileDisplayName.trim() ||
+        user?.user_metadata?.name ||
+        user?.email?.charAt(0) ||
+        'U';
+        return base.charAt(0).toUpperCase();
+    },[ isProfileLoaded, profileDisplayName, user?.user_metadata?.name, user?.email]);
 
     return (
         <div className="relative z-50" ref={dropdownRef}>
@@ -62,7 +117,8 @@ export default function UserMenuDropdown() {
 
             {/* ドロップダウンメニュー */}
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2"
+                <div
+                className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2"
                     style={{ zIndex: 9999 }}
                 >
                     {/* ユーザー情報セクション */}
@@ -96,26 +152,13 @@ export default function UserMenuDropdown() {
                             }}
                             className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         >
-                            <UserIcon className="w-4 h-4 mr-3" />
-                            プロフィール
-                        </button>
-
-                        {/* 設定リンク */}
-                        <button
-                            type="button"
-                            onClick={() => {
-                                router.push('/settings');
-                                setIsOpen(false);
-                            }}
-                            className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                        >
-                            <Settings className="w-4 h-4 mr-3" />
-                            設定
+                            <UserCog className="w-4 h-4 mr-3" />
+                            アカウント設定
                         </button>
                     </div>
 
                     {/* 区切り線 */}
-                    <div className="border-t border-gray-200 my-1"></div>
+                    <div className="border-t border-gray-200 my-1" />
 
                     {/* ログアウトボタン */}
                     <button

@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useUser } from "@/components/UserProvider";
 import Sidebar from "@/components/Sidebar";
-import { Header } from "@/components/Header";
 import EventListComponent from "@/components/EventListComponent";
 import TagChartComponent from "@/components/TagChartComponent";
 import WeeklyChartComponent from "@/components/WeeklyChartComponent";
-import { CheckCircle } from "lucide-react";
+import { LayoutDashboard ,CheckCircle } from "lucide-react";
+import { Header } from "@/components/Header"
 
 type RecentEvent = {
   id: number | null;
@@ -305,8 +305,14 @@ export default function DashboardPage() {
     <div className="flex min-h-screen">
       <Sidebar />
       <div className="flex-1 flex flex-col">
-        <Header title="ダッシュボード" />
+        <Header />
         <main className="flex-1 px-4 md:px-8 lg:px-28 py-6 md:py-8 lg:py-10">
+        <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+            <LayoutDashboard className="w-6 h-6 md:w-8 md:h-8 text-gray-700" />
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            ダッシュボード
+            </h1>
+          </div>
           {successMessage && (
             <div className="mb-4 md:mb-6">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">

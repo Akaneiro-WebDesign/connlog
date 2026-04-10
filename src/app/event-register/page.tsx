@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import SkillTagInput from '@/components/SkillTagInput';
+import { Header } from "@/components/Header"
 
 type ConnpassEvent = {
     event_id: number;
