@@ -217,6 +217,7 @@ export async function POST(request: NextRequest) {
         const relatedEvent = eventMap.get(note.event_id);
 
         let eventDate: string | null = null;
+
         if (relatedEvent?.started_at) {
           eventDate = relatedEvent.started_at;
         } else {
@@ -232,33 +233,22 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        if (eventDate) {
-          try {
-            let date = new Date(eventDate);
+        if (!eventDate) return;
+        try {
+          const date = new Date(eventDate);
+          if (isNaN(date.getTime())) return;
 
-            // UTC時刻の場合、日本時間に調整
-            if (eventDate.includes("T") && eventDate.includes("Z")) {
-              date = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-            }
+          // 未来のイベントは「参加した回数」に含めない
+          if (date > now) return;
 
-            if (!isNaN(date.getTime())) {
-              const weekKey = getWeekKey(date);
+          const weekKey = getWeekKey(date);
 
-              if (weekKey in weeklyCount) {
-                weeklyCount[weekKey]++;
-              } else {
-                const latestWeekKey = Object.keys(weeklyCount).sort().pop();
-                if (latestWeekKey) {
-                  const latestWeekDate = parseWeekKey(latestWeekKey);
-                  if (date >= latestWeekDate) {
-                    weeklyCount[latestWeekKey]++;
-                  }
-                }
-              }
-            }
-          } catch {
-            // 日付解析エラーは無視
+          // 直近5週間に入るものだけ加算
+          if (weekKey in weeklyCount) {
+            weeklyCount[weekKey]++;
           }
+        } catch {
+          // 日付解析エラーは無視
         }
       });
     }
@@ -271,6 +261,8 @@ export async function POST(request: NextRequest) {
       { week: "先週", count: weeklyCount[sortedWeekKeys[3]] || 0 },
       { week: "今週", count: weeklyCount[sortedWeekKeys[4]] || 0 },
     ];
+
+    console.log("[dashboard-data] weeklyParticipation:", weeklyParticipation);
 
     console.log(
       "[dashboard-data] weeklyParticipation build:",
