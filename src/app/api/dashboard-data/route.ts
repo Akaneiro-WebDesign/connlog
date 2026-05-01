@@ -61,7 +61,10 @@ export async function POST(request: NextRequest) {
         .eq("user_id", user_id)
         .order("updated_at", { ascending: false }),
 
-      supabase.from("tags").select("*").eq("owner_id", user_id),
+      supabase
+        .from("tags")
+        .select("*")
+        .eq("owner_id", user_id),
     ]);
 
     const { data: notes, error: notesError } = notesResult;
@@ -242,19 +245,15 @@ export async function POST(request: NextRequest) {
             }
 
             if (!isNaN(date.getTime())) {
+              // 未来のイベントは「参加した回数」に含めない
+              if (date > now) return;
+
               const weekKey = getWeekKey(date);
 
+              // 直近5週間に入るものだけ加算
               if (weekKey in weeklyCount) {
                 weeklyCount[weekKey]++;
-              } else {
-                const latestWeekKey = Object.keys(weeklyCount).sort().pop();
-                if (latestWeekKey) {
-                  const latestWeekDate = parseWeekKey(latestWeekKey);
-                  if (date >= latestWeekDate) {
-                    weeklyCount[latestWeekKey]++;
-                  }
-                }
-              }
+              } 
             }
           } catch {
             // 日付解析エラーは無視
@@ -278,67 +277,7 @@ export async function POST(request: NextRequest) {
       "ms",
     );
 
-    // 6. connpass APIから主催者情報を取得
-    // organizerが既にある場合は呼ばない
-
-    const connpassStart = performance.now();
-    if (events.length > 0) {
-      for (let i = 0; i < events.length; i++) {
-        const event = events[i];
-        const alreadyHasOrganizer =
-          event.organizer && event.organizer !== "主催者未定";
-        if (event.event_id && !alreadyHasOrganizer) {
-          try {
-            const oneFetchStart = performance.now();
-            const connpassResponse = await fetch(
-              `https://connpass.com/api/v2/events/?event_id=${event.event_id}`,
-              {
-                headers: {
-                  "X-API-Key": process.env.CONNPASS_API_KEY || "",
-                  "Content-Type": "application/json",
-                },
-              },
-            );
-
-            if (connpassResponse.ok) {
-              const connpassData = await connpassResponse.json();
-
-              if (connpassData.events && connpassData.events.length > 0) {
-                const connpassEvent = connpassData.events[0];
-
-                event.connpass_owner_text = connpassEvent.owner_text;
-              }
-            } else if (connpassResponse.status === 429) {
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-            }
-
-            if (i < events.length - 1) {
-              await new Promise((resolve) => setTimeout(resolve, 300));
-            }
-
-            console.log(
-              "[dashboard-data] connpass one:",
-              event.event_id,
-              Math.round(performance.now() - oneFetchStart),
-              "ms",
-            );
-          } catch (error) {
-            console.error(
-              `connpass API error for event ${event.event_id}:`,
-              error,
-            );
-          }
-        }
-      }
-    }
-
-    console.log(
-      "[dashboard-data] connpass total:",
-      Math.round(performance.now() - connpassStart),
-      "ms",
-    );
-
-    // 7. 最近のイベント履歴作成
+    // 6. 最近のイベント履歴作成
     const recentEventsStart = performance.now();
 
     const recentEvents = (notes || []).map((note: any, index: number) => {
@@ -366,7 +305,7 @@ export async function POST(request: NextRequest) {
             : "イベントの概要はありません"),
         event_url:
           relatedEvent?.event_url ||
-          `https://connpass.com/event/${relatedEvent?.event_id}/`,
+          (note.event_id ? `https://connpass.com/event/${relatedEvent?.event_id}/` : ""),
       };
     });
 
@@ -422,11 +361,6 @@ function getWeekKey(date: Date): string {
   return `${year}-${month}-${dayStr}`;
 }
 
-function parseWeekKey(weekKey: string): Date {
-  const [year, month, day] = weekKey.split("-").map(Number);
-  return new Date(year, month - 1, day);
-}
-
 function formatEventDate(dateString: string | null): string {
   if (!dateString) return "日付未定";
 
@@ -480,12 +414,8 @@ function formatEventTime(
 function getOrganizerName(event: any): string {
   if (!event) return "主催者未定";
 
-  if (event.organizer && event.organizer !== "主催者未定") {
+  if (event.organizer && event.organizer.trim() !== "") {
     return event.organizer;
-  }
-
-  if (event.connpass_owner_text && event.connpass_owner_text.trim() !== "") {
-    return event.connpass_owner_text.trim();
   }
 
   return "主催者未定";

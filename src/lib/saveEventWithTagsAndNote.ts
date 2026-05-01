@@ -22,10 +22,13 @@ export const convertConnpassToDatabase = (connpassEvent: any, userId: string) =>
         started_at: connpassEvent?.started_at || new Date().toISOString(),
         ended_at: connpassEvent?.ended_at || null,
         place: connpassEvent?.place || null,
-        event_url: connpassEvent?.event_url || '',
+        event_url: connpassEvent?.url || connpassEvent?.event_url || '',
         description: connpassEvent?.description || null,
         catch: connpassEvent?.catch || null,
-        organizer: connpassEvent?.owner_display_name || connpassEvent?.organizer || connpassEvent?.group_title || '主催者未定',
+        organizer:
+            connpassEvent?.owner_display_name ||
+            connpassEvent?.group?.title ||
+            '主催者未定',
         owner_id: userId,
         created_by: userId
     }
