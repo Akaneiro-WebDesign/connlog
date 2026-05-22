@@ -68,17 +68,21 @@ export default function SkillsPage() {
     }, [user]);
 
     const loadDashboardData = async () => {
-        try {
-            setLoading(true);
-            setApiError(null);
+        if (!user?.id) {
+            setLoading(false);
+            return;
+        }
 
-            const response = await fetch('/api/dashboard-data', {
-                method: 'POST',
+        const userId = user.id; 
+
+        try {
+            const response = await fetch("/api/dashboard-data", {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json',
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    user_id: user.id
+                    user_id: userId
                 })
             });
 

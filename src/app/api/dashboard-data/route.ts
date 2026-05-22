@@ -13,6 +13,48 @@ const TAG_COLORS = [
   "#EC4899",
 ];
 
+type EventId = string | number;
+
+type NoteRow = {
+  id: string;
+  event_id: EventId | null;
+  note?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  date?: string | null;
+  event_date?: string | null;
+};
+
+type EventRow = {
+  id?: number | string | null;
+  event_id: EventId | null;
+  title?: string | null;
+  started_at?: string | null;
+  ended_at?: string | null;
+  place?: string | null;
+  venue?: string | null;
+  event_url?: string | null;
+  description?: string | null;
+  event_description?: string | null;
+  url?: string | null;
+  catch?: string | null;
+  organizer?: string | null;
+};
+
+type TagRow = {
+  id?: string | number;
+  event_id: EventId | null;
+  tag_name?: string | null;
+  name?: string | null;
+  owner_id?: string | null;
+  created_by_id?: string | null;
+};
+
+const getEventKey = (eventId: EventId | null | undefined) => {
+  if (eventId == null) return null;
+  return String(eventId);
+};
+
 export async function POST(request: NextRequest) {
   const totalStart = performance.now();
 
@@ -102,14 +144,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const typedNotes = (notes ?? []) as NoteRow[];
+    const typedTags = (tags ?? []) as TagRow[];
+
     // 2. events テーブル取得
-    let events: any[] = [];
-    if (notes && notes.length > 0) {
+    let events: EventRow[] = [];
+    if (typedNotes.length > 0) {
       const eventsStart = performance.now();
 
       const eventIds = [
         ...new Set(
-          notes.map((note) => note.event_id).filter((id) => id != null),
+          typedNotes
+          .map((note) => note.event_id)
+          .filter((id): id is EventId => id != null),
         ),
       ];
 
@@ -122,7 +169,7 @@ export async function POST(request: NextRequest) {
         if (eventsError) {
           console.error("[dashboard-data] eventsError:", eventsError);
         } else {
-          events = eventsData || [];
+          events = (eventsData ?? []) as EventRow[];
         }
       }
 
@@ -155,21 +202,28 @@ export async function POST(request: NextRequest) {
     // 3. find/filter を減らすための Map を作る
     const mapStart = performance.now();
 
-    const eventMap = new Map<number, any>();
+    const eventMap = new Map<string, EventRow>();
+
     for (const event of events) {
-      if (event?.event_id != null) {
-        eventMap.set(event.event_id, event);
+      const eventKey = getEventKey(event.event_id);
+
+      if (eventKey) {
+        eventMap.set(eventKey, event);
       }
     }
 
-    const tagsMap = new Map<number, string[]>();
-    for (const tag of tags || []) {
-      if (tag?.event_id == null) continue;
+    const tagsMap = new Map<string, string[]>();
+
+    for (const tag of typedTags) {
+      const eventKey = getEventKey(tag.event_id);
+
+      if (!eventKey) continue;
 
       const tagName = tag.tag_name || tag.name || "タグ";
-      const currentTags = tagsMap.get(tag.event_id) ?? [];
+      const currentTags = tagsMap.get(eventKey) ?? [];
+
       currentTags.push(tagName);
-      tagsMap.set(tag.event_id, currentTags);
+      tagsMap.set(eventKey, currentTags);
     }
 
     console.log(
@@ -181,8 +235,8 @@ export async function POST(request: NextRequest) {
     // 4. タグ別割合の計算
     const tagCount: Record<string, number> = {};
 
-    if (tags && tags.length > 0) {
-      tags.forEach((tag: any) => {
+    if (typedTags.length > 0) {
+      typedTags.forEach((tag) => {
         const tagName = tag.tag_name || tag.name || "Unknown";
         tagCount[tagName] = (tagCount[tagName] || 0) + 1;
       });
@@ -215,9 +269,10 @@ export async function POST(request: NextRequest) {
     }
 
     // notesの実際のイベント開催日を使用
-    if (notes && notes.length > 0) {
-      notes.forEach((note: any) => {
-        const relatedEvent = eventMap.get(note.event_id);
+    if (typedNotes.length > 0) {
+      typedNotes.forEach((note) => {
+        const eventKey = getEventKey(note.event_id);
+        const relatedEvent = eventKey ? eventMap.get(eventKey) : undefined;
 
         let eventDate: string | null = null;
         if (relatedEvent?.started_at) {
@@ -228,10 +283,12 @@ export async function POST(request: NextRequest) {
             note.created_at,
             note.date,
             note.event_date,
-          ].filter((d) => typeof d === "string" && d !== "");
+          ].filter((d): d is string => typeof d === "string" && d.trim() !== "");
 
-          if (possibleDates.length > 0) {
-            eventDate = possibleDates[0];
+          const firstPossibleDate = possibleDates[0];
+
+          if (firstPossibleDate) {
+            eventDate = firstPossibleDate;
           }
         }
 
@@ -280,8 +337,9 @@ export async function POST(request: NextRequest) {
     // 6. 最近のイベント履歴作成
     const recentEventsStart = performance.now();
 
-    const recentEvents = (notes || []).map((note: any, index: number) => {
-      const relatedEvent = eventMap.get(note.event_id);
+    const recentEvents = typedNotes.map((note, index) => {
+    const eventKey = getEventKey(note.event_id);
+    const relatedEvent = eventKey ?  eventMap.get(eventKey) : undefined;
 
       return {
         id: relatedEvent?.id ?? null,
@@ -295,7 +353,7 @@ export async function POST(request: NextRequest) {
         type: "イベント",
         organizer: getOrganizerName(relatedEvent),
         venue: relatedEvent?.place || "オンライン",
-        tags: (tagsMap.get(note.event_id) ?? []).slice(0, 3),
+        tags: eventKey ? (tagsMap.get(eventKey) ?? []).slice(0, 3) : [],
         description: note.note || "メモはありません",
         event_description:
           relatedEvent?.catch ||
@@ -305,7 +363,7 @@ export async function POST(request: NextRequest) {
             : "イベントの概要はありません"),
         event_url:
           relatedEvent?.event_url ||
-          (note.event_id ? `https://connpass.com/event/${relatedEvent?.event_id}/` : ""),
+          (note.event_id ? `https://connpass.com/event/${note.event_id}/` : ""),
       };
     });
 
@@ -361,7 +419,7 @@ function getWeekKey(date: Date): string {
   return `${year}-${month}-${dayStr}`;
 }
 
-function formatEventDate(dateString: string | null): string {
+function formatEventDate(dateString?: string | null): string {
   if (!dateString) return "日付未定";
 
   try {
@@ -380,7 +438,7 @@ function formatEventDate(dateString: string | null): string {
 }
 
 function formatEventTime(
-  startDateTime: string | null,
+  startDateTime?: string | null,
   endDateTime?: string | null,
 ): string {
   if (!startDateTime) return "時間未定";
@@ -411,7 +469,7 @@ function formatEventTime(
   }
 }
 
-function getOrganizerName(event: any): string {
+function getOrganizerName(event?: EventRow): string {
   if (!event) return "主催者未定";
 
   if (event.organizer && event.organizer.trim() !== "") {

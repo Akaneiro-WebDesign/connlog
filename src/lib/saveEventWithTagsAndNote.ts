@@ -6,31 +6,62 @@ import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 
 const supabase = createSupabaseBrowserClient()
 
+type ConnpassEvent = {
+    id?: number
+    event_id?: number | string
+    title?: string
+    started_at?: string
+    ended_at?: string | null
+    place?: string | null
+    url?: string
+    event_url?: string
+    description?: string | null
+    catch?: string | null
+    owner_display_name?: string
+    organizer?: string
+    group?: {
+        title?: string
+    }
+}
+
+type TagsAndNote = {
+    tags: string[]
+    note: string
+}
+
+type RegisteredEventRow = {
+    event_id: string | number | null;
+}
+
 /**
  * connpass APIレスポンスをSupabaseテーブル形式に変換
  * 異なるAPI仕様に対応するため柔軟なフィールドマッピングを実装
  */
-export const convertConnpassToDatabase = (connpassEvent: any, userId: string) => {
-    const eventId = connpassEvent?.id || connpassEvent?.event_id
+export const convertConnpassToDatabase = (
+    connpassEvent: ConnpassEvent,
+    userId: string
+) => {
+    const eventId = connpassEvent.id ?? connpassEvent.event_id
     if (!eventId) {
         throw new Error('イベントIDが存在しません')
     }
 
     return {
         event_id: String(eventId),
-        title: connpassEvent?.title || 'タイトルなし',
-        started_at: connpassEvent?.started_at || new Date().toISOString(),
-        ended_at: connpassEvent?.ended_at || null,
-        place: connpassEvent?.place || null,
-        event_url: connpassEvent?.url || connpassEvent?.event_url || '',
-        description: connpassEvent?.description || null,
-        catch: connpassEvent?.catch || null,
+        title: connpassEvent.title || 'タイトルなし',
+        started_at: connpassEvent.started_at || new Date().toISOString(),
+        ended_at: connpassEvent.ended_at || null,
+        place: connpassEvent.place || null,
+        event_url: connpassEvent.url || connpassEvent.event_url || '',
+        description: connpassEvent.description || null,
+        catch: connpassEvent.catch || null,
         organizer:
-            connpassEvent?.owner_display_name ||
-            connpassEvent?.group?.title ||
+            connpassEvent.owner_display_name ||
+            connpassEvent.group?.title ||
+            connpassEvent.organizer ||
             '主催者未定',
         owner_id: userId,
-        created_by: userId
+        created_by: userId,
     }
 }
 
@@ -41,18 +72,21 @@ export const convertConnpassToDatabase = (connpassEvent: any, userId: string) =>
  * @param tagsAndNote - ユーザーが入力したタグとメモ
  */
 export const saveEventWithTagsAndNote = async (
-    connpassEvent: any,
-    tagsAndNote: { tags: string[], note: string }
+    connpassEvent: ConnpassEvent,
+    tagsAndNote: TagsAndNote
 ) => {
     if (!connpassEvent) {
         throw new Error('イベントデータが存在しません')
     }
-    const eventId = connpassEvent.id || connpassEvent.event_id
+    const eventId = connpassEvent.id ?? connpassEvent.event_id
     if (!eventId) {
         throw new Error('イベントIDが存在しません')
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+        data: { user },
+        error: authError
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
         console.error('認証エラー:', authError)
@@ -71,7 +105,13 @@ export const saveEventWithTagsAndNote = async (
             .select('id')
             .eq('event_id', eventIdString)
             .eq('owner_id', userId)
-            .single()
+            .maybeSingle()
+
+        if (selectError) {
+            console.error('イベント取得エラー:', selectError)
+            throw new Error(`イベントの取得に失敗しました:
+                ${selectError.message}`)
+        }
 
         let savedEvent
 
@@ -87,7 +127,7 @@ export const saveEventWithTagsAndNote = async (
 
             if (updateError) {
                 console.error('イベント更新エラー:', updateError)
-                throw new Error(`イベントの更新に失敗しました:${updateError.message}`)
+                throw new Error(`イベントの更新に失敗しました: ${updateError.message}`)
             }
             savedEvent = data
         } else {
@@ -119,12 +159,12 @@ export const saveEventWithTagsAndNote = async (
         // 新しいタグを保存
         if (tagsAndNote.tags && tagsAndNote.tags.length > 0) {
             const tagsData = tagsAndNote.tags
-                .filter(tag => tag && tag.trim())
-                .map(tag => ({
+                .filter((tag) => tag && tag.trim())
+                .map((tag) => ({
                     event_id: eventIdString,
                     tag_name: tag.trim(),
                     owner_id: userId,
-                    created_by_id: userId
+                    created_by_id: userId,
                 }))
 
             if (tagsData.length > 0) {
@@ -148,13 +188,19 @@ export const saveEventWithTagsAndNote = async (
                 .eq('event_id', eventIdString)
                 .eq('user_id', userId)
 
+                if (deleteNoteError) {
+                    console.error('既存メモ削除エラー:', deleteNoteError)
+                    throw new Error(`既存メモの削除に失敗しました:
+                        ${deleteNoteError.message}`)
+                }
+
             // 新しいメモを挿入
             const { error: insertNoteError } = await supabase
                 .from('notes')
                 .insert({
                     event_id: eventIdString,
                     note: tagsAndNote.note.trim(),
-                    user_id: userId
+                    user_id: userId,
                 })
 
             if (insertNoteError) {
@@ -166,7 +212,7 @@ export const saveEventWithTagsAndNote = async (
         return {
             event: savedEvent,
             tags: tagsAndNote.tags || [],
-            note: tagsAndNote.note || ''
+            note: tagsAndNote.note || '',
         }
     } catch (error) {
         console.error('保存処理でエラーが発生しました:', error)
@@ -180,7 +226,10 @@ export const saveEventWithTagsAndNote = async (
  */
 export const getUserRegisteredEventIds = async (): Promise<Set<number>> => {
     try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        const {
+            data: { user },
+            error: authError,
+        } = await supabase.auth.getUser()
 
         if (authError || !user) {
             return new Set()
@@ -200,15 +249,19 @@ export const getUserRegisteredEventIds = async (): Promise<Set<number>> => {
             return new Set()
         }
 
-        const eventIds = data
-            .map(event => {
-                const id = event?.event_id
+        const registeredEvents = (data ?? []) as RegisteredEventRow[];
+
+        const eventIds = registeredEvents
+            .map((event) => {
+                const id = event.event_id;
+
                 if (id) {
-                    return parseInt(String(id))
+                    return parseInt(String(id), 10);
                 }
-                return null
+                
+                return null;
             })
-            .filter(id => id !== null && !isNaN(id)) as number[]
+            .filter((id): id is number => id !== null && !isNaN(id));
         return new Set(eventIds)
     } catch (error) {
         console.error('登録済みイベント取得でエラー:', error)

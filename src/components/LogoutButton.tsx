@@ -1,31 +1,46 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/browser';
 import { useState } from 'react';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export function LogoutButton() {
     const router = useRouter();
-    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-    setError('ログアウトに失敗しました');
-    } else {
-    router.replace('/login');
-    }
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const supabase = createSupabaseBrowserClient();
+            const { error: signOutError } = await supabase.auth.signOut();
+            if (signOutError) {
+                throw signOutError;
+            }
+            router.push('/');
+            router.refresh();
+        } catch (logoutError) {
+            console.error('ログアウトエラー:', logoutError);
+            setError('ログアウトに失敗しました。時間をおいて再度お試しください。');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
         <>
         <button
+        type="button"
         onClick={handleLogout}
-        className="bg-gray-800 text-white py-2 px-4 rounded hover:bg-gray-700 transition"
+        disabled={isLoading}
+        className="rounded bg-gray-800 px-4 py-2 text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-            ログアウト
+            {isLoading ? 'ログアウト中...' : 'ログアウト'}
         </button>
+
         {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
-            </>
+    </>
     );
 }

@@ -20,6 +20,30 @@ import {
     ChevronsRight
 } from 'lucide-react'
 
+type ConnpassEvent = {
+    id?: number
+    event_id?: number
+    title?: string
+    started_at?: string
+    ended_at?: string
+    url?: string
+    event_url?: string
+    address?: string
+    place?: string
+    venue?: string
+    owner_display_name?: string
+    owner_text?: string
+    organizer?: string
+    group?: {
+        title?: string
+    }
+    catch?: string
+    description?: string
+    event_description?: string
+    hash_tag?: string
+    tags?: string[]
+}
+
 /**
  * ConnLogメイン検索フォーム
  * connpassイベント検索・表示・登録機能の統合コンポーネント
@@ -34,18 +58,18 @@ export const EventSearchForm = () => {
     // 基本の状態管理
     const [searchMode, setSearchMode] = useState<'event' | 'nickname'>('nickname')
     const [searchInput, setSearchInput] = useState('')
-    const [events, setEvents] = useState<any[]>([])
+    const [events, setEvents] = useState<ConnpassEvent[]>([])
     const [isLoading, setIsLoading] = useState(false)
 
     // ページネーション用の状態管理
     const [currentPage, setCurrentPage] = useState(1)
     const [totalResults, setTotalResults] = useState(0)
-    const [hasMore, setHasMore] = useState(false)
+    const [, setHasMore] = useState(false)
     const ITEMS_PER_PAGE = 20
 
     // モーダル関連の状態
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const [selectedEvent, setSelectedEvent] = useState<any | null>(null)
+    const [selectedEvent, setSelectedEvent] = useState<ConnpassEvent | null>(null)
 
     // 登録済みイベント管理
     const [registeredEventIds, setRegisteredEventIds] = useState<Set<number>>(new Set())
@@ -59,7 +83,7 @@ export const EventSearchForm = () => {
         try {
             const ids = await getUserRegisteredEventIds()
             setRegisteredEventIds(ids)
-        } catch (error) {
+        } catch {
 
         }
     }
@@ -77,7 +101,7 @@ export const EventSearchForm = () => {
         setCurrentPage(1)
 
         try {
-            let searchResults: any[] = []
+            let searchResults: ConnpassEvent[] = []
 
             if (searchMode === 'event') {
                 const eventId = extractEventId(searchInput.trim())
@@ -105,7 +129,7 @@ export const EventSearchForm = () => {
                     setTotalResults(apiTotal || fallbackTotal)
                     setHasMore(result.pagination?.hasMore || false)
 
-                } catch (userError) {
+                } catch {
                     searchResults = []
                     setTotalResults(0)
                     setHasMore(false)
@@ -121,7 +145,7 @@ export const EventSearchForm = () => {
                     alert('イベントが見つかりませんでした')
                 }
             }
-        } catch (error) {
+        } catch {
             alert('検索に失敗しました。もう一度お試しください。')
         } finally {
             setIsLoading(false)
@@ -141,7 +165,7 @@ export const EventSearchForm = () => {
 
             setEvents(result.events || [])
             setHasMore(result.pagination?.hasMore || false)
-        } catch (error) {
+        } catch {
             alert('ページの読み込みに失敗しました')
         } finally {
             setIsLoading(false)
@@ -149,7 +173,7 @@ export const EventSearchForm = () => {
     }
 
     // モーダル制御関数
-    const handleTagMemoClick = (event: any) => {
+    const handleTagMemoClick = (event: ConnpassEvent) => {
         setSelectedEvent(event)
         setIsModalOpen(true)
     }
@@ -188,7 +212,7 @@ export const EventSearchForm = () => {
     }
 
     //　タグの処理（connpassのhash_tagまたは手動タグ）
-    const getTags = (event: any) => {
+    const getTags = (event: ConnpassEvent) => {
         if (event.tags && Array.isArray(event.tags)) {
             return event.tags
         }
@@ -284,13 +308,15 @@ export const EventSearchForm = () => {
 
                     <div className="space-y-4">
                         {events.map((event, index) => {
-                            const isRegistered = isEventRegistered(event.id || event.event_id)
-                            const { date, time } = formatDateTime(event.started_at, event.ended_at)
+                            const eventId = event.id ?? event.event_id
+                            const isRegistered = eventId ? isEventRegistered(eventId) : false
+                            const { date, time } = formatDateTime(event.started_at ?? '', event.ended_at)
                             const tags = getTags(event)
-                            const cleanDescription = sanitizeEventDescription(event.catch || event.description || event.event_description, 100)
+                            const rawDescription = event.catch || event.description || event.event_description || ''
+                            const cleanDescription = sanitizeEventDescription(rawDescription, 100)
 
                             return (
-                                <div key={event.id || event.event_id || index} className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 lg:p-10 mb-4 md:mb-6 lg:mb-9 shadow-sm hover:shadow-md transition-shadow">
+                                <div key={eventId || index} className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 lg:p-10 mb-4 md:mb-6 lg:mb-9 shadow-sm hover:shadow-md transition-shadow">
                                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                                         <div className="flex-1">
                                             {/* 日時・主催者情報 */}
@@ -316,6 +342,18 @@ export const EventSearchForm = () => {
                                             >
                                                 {event.title || 'タイトル不明'}
                                             </a>
+                                            {tags.length > 0 && (
+                                                <div className="flex flex-wrap gap-2 mb-3">
+                                                    {tags.slice(0, 3).map((tag) => (
+                                                        <span
+                                                            key={tag}
+                                                            className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700"
+                                                        >
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
 
                                             {/* 場所情報 */}
                                             <div className="flex items-center gap-2 mb-3 md:mb-5">

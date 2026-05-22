@@ -5,10 +5,35 @@ import { X, Tag, PenTool, CalendarDays, MapPinned, UserRound, Save, RotateCcw } 
 import { sanitizeEventDescription } from '@/lib/sanitizeEventDescription'
 import { formatDateTime } from '@/lib/formatDateTime'
 
+type ConnpassEvent = {
+    id?: number
+    event_id?: number
+    title?: string
+    started_at?: string
+    ended_at?: string
+    date?: string
+    url?: string
+    event_url?: string
+    address?: string
+    place?: string
+    venue?: string
+    owner_display_name?: string
+    owner_text?: string
+    organizer?: string
+    group?: {
+        title?: string
+    }
+    catch?: string
+    description?: string
+    event_description?: string
+    hash_tag?: string
+    tags?: string[]
+}
+
 interface SearchTagMemoModalProps {
     isOpen: boolean
     onClose: () => void
-    event: any | null
+    event: ConnpassEvent | null
     onSave: (data: { tags: string[], note: string }) => Promise<void>
 }
 
@@ -56,7 +81,7 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
             await onSave({ tags, note })
             // 保存成功時はフォームをリセット
             resetForm()
-        } catch (error) {
+        } catch {
             //　エラーハンドリングは親コンポーネントで行う
         } finally {
             setIsLoading(false)
@@ -79,7 +104,7 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
     // モーダルが閉じている場合は何も表示しない
     if (!isOpen || !event) return null
 
-    const formattedDate = formatDateTime(event.started_at || event.date, event.ended_at)
+    const formattedDate = formatDateTime(event.started_at ?? event.date ?? '', event.ended_at)
 
     // catch優先、空ならdescriptionを使用
     const rawDescription = event.catch || event.description || event.event_description || ''
