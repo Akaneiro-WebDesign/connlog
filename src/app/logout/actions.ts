@@ -1,9 +1,9 @@
 'use server';
 
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export const logout = async () => {
-    const supabase = createServerActionClient({cookies});
+    const supabase = await createSupabaseServerClient();
+
     await supabase.auth.signOut();
-} ;
+};

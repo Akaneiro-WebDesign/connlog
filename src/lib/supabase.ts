@@ -1,10 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+"use client";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Supabaseの環境変数が設定されていません');
-}
+// シングルトンインスタンスを作成
+export const supabase = createSupabaseBrowserClient();
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// 既存コード互換用
+export const createClient = createSupabaseBrowserClient;
