@@ -68,12 +68,12 @@ export default function DashboardPage() {
       setLoading(true);
       setApiError(null);
 
-    if (process.env.NODE_ENV === "development") {
-      console.log("[dashboard] loadDashboardData called:", {
-        userId: targetUserId,
-        time: new Date().toISOString(),
-      });
-    }
+      if (process.env.NODE_ENV === "development") {
+        console.log("[dashboard] loadDashboardData called:", {
+          userId: targetUserId,
+          time: new Date().toISOString(),
+        });
+      }
 
       const response = await fetch("/api/dashboard-data", {
         method: "POST",
@@ -202,7 +202,7 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
             <LayoutDashboard className="w-6 h-6 md:w-8 md:h-8 text-gray-700" />
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            ダッシュボード
+              ダッシュボード
             </h1>
           </div>
           {successMessage && (
@@ -235,10 +235,10 @@ export default function DashboardPage() {
             {!loading && !apiError && dataSource === "real" && (
               <div className="border rounded-lg p-3 bg-green-50 border-green-200">
                 <div className="text-sm">
-                    <span className="text-green-800">
-                      <strong>実データ表示中:</strong>{" "}
-                      Supabaseから最新データを取得しました。
-                    </span>
+                  <span className="text-green-800">
+                    <strong>実データ表示中:</strong>{" "}
+                    Supabaseから最新データを取得しました。
+                  </span>
                 </div>
               </div>
             )}

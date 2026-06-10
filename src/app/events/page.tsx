@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useUser } from "@/components/UserProvider";
 import Sidebar from "@/components/Sidebar";
 import EventListComponent from "@/components/EventListComponent";
-import { CalendarClock, CheckCircle, Search } from "lucide-react";
+import { CalendarClock, CheckCircle, Search, Meh } from "lucide-react";
 import { Header } from "@/components/Header";
 
 type RecentEvent = {
@@ -82,7 +82,8 @@ export default function EventsPage() {
         setStats(nextStats);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "データ取得エラー";
+      const errorMessage =
+        error instanceof Error ? error.message : "データ取得エラー";
       console.error("データ取得エラー:", error);
 
       setApiError(errorMessage);
@@ -210,13 +211,12 @@ export default function EventsPage() {
               </div>
             )}
             {!loading && !apiError && dataSource === "real" && (
-              <div
-                className="border rounded-lg p-3 bg-green-50 border-green-200">
+              <div className="border rounded-lg p-3 bg-green-50 border-green-200">
                 <div className="text-sm">
-                    <span className="text-green-800">
-                      <strong>実データ表示中:</strong>{" "}
-                      Supabaseから最新データを取得しました。
-                    </span>
+                  <span className="text-green-800">
+                    <strong>実データ表示中:</strong>{" "}
+                    Supabaseから最新データを取得しました。
+                  </span>
                 </div>
               </div>
             )}
@@ -237,7 +237,7 @@ export default function EventsPage() {
           ) : stats && dataSource === "empty" ? (
             <div className="bg-white rounded-lg p-6 md:p-10 shadow-sm text-center">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-50">
-                <CalendarClock className="h-6 w-6 text-orange-500" />
+                <Meh className="h-6 w-6 text-orange-500" />
               </div>
               <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
                 保存したイベントはまだありません
@@ -251,7 +251,7 @@ export default function EventsPage() {
                 className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-orange-600"
               >
                 <Search className="h-4 w-4 mr-2" />
-                  イベントを検索する
+                イベントを検索する
               </button>
             </div>
           ) : stats ? (
