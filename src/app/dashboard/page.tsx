@@ -1,14 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useUser } from "@/components/UserProvider";
 import Sidebar from "@/components/Sidebar";
 import EventListComponent from "@/components/EventListComponent";
 import TagChartComponent from "@/components/TagChartComponent";
 import WeeklyChartComponent from "@/components/WeeklyChartComponent";
-import { LayoutDashboard ,CheckCircle } from "lucide-react";
-import { Header } from "@/components/Header"
+import { LayoutDashboard, CheckCircle, Meh, Search } from "lucide-react";
+import { Header } from "@/components/Header";
 
 type RecentEvent = {
   id: number | null;
@@ -40,151 +40,40 @@ interface DashboardStats {
   recentEvents: RecentEvent[];
 }
 
+const isEmptyDashboardStats = (data: DashboardStats) => {
+  const hasTagDistribution = data.tagDistribution.length > 0;
+  const hasWeeklyParticipation = data.weeklyParticipation.some(
+    (item) => item.count > 0,
+  );
+  const hasRecentEvents = data.recentEvents.length > 0;
+
+  return !hasTagDistribution && !hasWeeklyParticipation && !hasRecentEvents;
+};
+
 export default function DashboardPage() {
   const { user, isLoading } = useUser();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [dataSource, setDataSource] = useState<"real" | "fallback">("fallback");
+  const [dataSource, setDataSource] = useState<"real" | "empty">("empty");
   const [apiError, setApiError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const router = useRouter();
 
-  const fallbackData: DashboardStats = {
-    tagDistribution: [
-      { name: "React", value: 25, color: "#DC2626" },
-      { name: "LT発表", value: 24, color: "#F97316" },
-      { name: "もくもく会", value: 19, color: "#EAB308" },
-      { name: "Rails", value: 13, color: "#22C55E" },
-      { name: "PHP", value: 10, color: "#3B82F6" },
-      { name: "その他", value: 9, color: "#9E9E9E" },
-    ],
-    weeklyParticipation: [
-      { week: "4週間前", count: 8 },
-      { week: "3週間前", count: 12 },
-      { week: "2週間前", count: 15 },
-      { week: "先週", count: 10 },
-      { week: "今週", count: 5 },
-    ],
-    recentEvents: [
-      {
-        id: 1,
-        noteId: "fallback-note-1",
-        externalEventId: 100001,
-        title: "フォールバックデータ #1",
-        date: "2025年5月7日（水）",
-        time: "19:00〜21:00",
-        type: "React勉強会",
-        organizer: "フォールバックデータorganizer #1",
-        venue: "オンライン",
-        tags: ["React", "JavaScript", "フロントエンド"],
-        description: "フォールバックデータ #1のdescriptionです。",
-        event_description: "フォールバックデータ #1のevent_descriptionです。",
-        url: "https://connpass.com/event/123456/",
-        event_url: "https://connpass.com/event/123456/",
-      },
-      {
-        id: 2,
-        noteId: "fallback-note-2",
-        externalEventId: 100002,
-        title: "フォールバックデータ #2",
-        date: "2025年5月7日（水）",
-        time: "19:00〜21:00",
-        type: "Vue.js勉強会",
-        organizer: "フォールバックデータorganizer #2",
-        venue: "オンライン",
-        tags: ["Vue.js", "JavaScript", "フロントエンド"],
-        description: "フォールバックデータ #2のdescriptionです。",
-        event_description: "フォールバックデータ #2のevent_descriptionです。",
-        url: "https://connpass.com/event/123457/",
-        event_url: "https://connpass.com/event/123457/",
-      },
-      {
-        id: 3,
-        noteId: "fallback-note-3",
-        externalEventId: 100003,
-        title: "フォールバックデータ #3",
-        date: "2025年5月7日（水）",
-        time: "19:00〜21:00",
-        type: "Node.js勉強会",
-        organizer: "フォールバックデータorganizer #3",
-        venue: "オンライン",
-        tags: ["Node.js", "JavaScript", "バックエンド"],
-        description: "フォールバックデータ #3のdescriptionです。",
-        event_description: "フォールバックデータ #3のevent_descriptionです。",
-        url: "https://connpass.com/event/123458/",
-        event_url: "https://connpass.com/event/123458/",
-      },
-      {
-        id: 4,
-        noteId: "fallback-note-4",
-        externalEventId: 100004,
-        title: "フォールバックデータ #4",
-        date: "2025年5月6日（火）",
-        time: "19:00〜21:00",
-        type: "Python勉強会",
-        organizer: "フォールバックデータorganizer #4",
-        venue: "オンライン",
-        tags: ["Python", "データサイエンス", "AI"],
-        description: "フォールバックデータ #4のdescriptionです。",
-        event_description: "フォールバックデータ #4のevent_descriptionです。",
-        url: "https://connpass.com/event/123459/",
-        event_url: "https://connpass.com/event/123459/",
-      },
-      {
-        id: 5,
-        noteId: "fallback-note-5",
-        externalEventId: 100005,
-        title: "フォールバックデータ #5",
-        date: "2025年5月5日（月）",
-        time: "19:00〜21:00",
-        type: "TypeScript勉強会",
-        organizer: "フォールバックデータorganizer #5",
-        venue: "オンライン",
-        tags: ["TypeScript", "JavaScript", "フロントエンド"],
-        description: "フォールバックデータ #5のdescriptionです。",
-        event_description: "フォールバックデータ #5のevent_descriptionです。",
-        url: "https://connpass.com/event/123460/",
-        event_url: "https://connpass.com/event/123460/",
-      },
-      {
-        id: 6,
-        noteId: "fallback-note-6",
-        externalEventId: 100006,
-        title: "フォールバックデータ #6",
-        date: "2025年5月4日（日）",
-        time: "14:00〜16:00",
-        type: "Go勉強会",
-        organizer: "フォールバックデータorganizer #6",
-        venue: "オンライン",
-        tags: ["Go", "バックエンド", "サーバー"],
-        description: "フォールバックデータ #6のdescriptionです。",
-        event_description: "フォールバックデータ #6のevent_descriptionです。",
-        url: "https://connpass.com/event/123461/",
-        event_url: "https://connpass.com/event/123461/",
-      },
-    ],
-  };
+  const userId = user?.id;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted || isLoading || !user?.id) return;
-    loadDashboardData(user.id);
-  }, [mounted, isLoading, user?.id]);
-
-  const loadDashboardData = async (userId: string) => {
+  const loadDashboardData = useCallback(async (targetUserId: string) => {
     try {
       setLoading(true);
       setApiError(null);
 
-      console.log("[dashboard] loadDashboardData called:", {
-        userId,
-        time: new Date().toISOString(),
-      });
+      if (process.env.NODE_ENV === "development") {
+        console.log("[dashboard] loadDashboardData called:", {
+          userId: targetUserId,
+          time: new Date().toISOString(),
+        });
+      }
 
       const response = await fetch("/api/dashboard-data", {
         method: "POST",
@@ -192,7 +81,7 @@ export default function DashboardPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: userId,
+          user_id: targetUserId,
         }),
       });
 
@@ -203,13 +92,9 @@ export default function DashboardPage() {
       }
       const data: DashboardStats = await response.json();
 
-      if (
-        data.tagDistribution.length === 0 &&
-        data.weeklyParticipation.length === 0 &&
-        data.recentEvents.length === 0
-      ) {
-        setDataSource("fallback");
-        setStats(fallbackData);
+      if (isEmptyDashboardStats(data)) {
+        setDataSource("empty");
+        setStats(data);
       } else {
         setDataSource("real");
         setStats(data);
@@ -219,12 +104,21 @@ export default function DashboardPage() {
         error instanceof Error ? error.message : "データ取得エラー";
       console.error("データ取得エラー:", error);
       setApiError(errorMessage);
-      setDataSource("fallback");
-      setStats(fallbackData);
+      setDataSource("empty");
+      setStats(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || isLoading || !userId) return;
+    loadDashboardData(userId);
+  }, [mounted, isLoading, userId, loadDashboardData]);
 
   const handleViewAllEvents = () => {
     router.push("/events");
@@ -247,7 +141,6 @@ export default function DashboardPage() {
     try {
       setIsDeleting(true);
 
-      // APIを呼び出して削除
       const response = await fetch("/api/events/delete", {
         method: "DELETE",
         headers: {
@@ -266,7 +159,6 @@ export default function DashboardPage() {
         throw new Error(result.error || "削除に失敗しました");
       }
 
-      // 成功したらUIを更新
       if (stats) {
         const updatedEvents = stats.recentEvents.filter(
           (item) => item.noteId !== event.noteId,
@@ -276,9 +168,8 @@ export default function DashboardPage() {
 
       setSuccessMessage(`「${event.title}」を削除しました。`);
 
-      // データを再読み込み
-      if (user?.id) {
-        await loadDashboardData(user.id);
+      if (userId) {
+        await loadDashboardData(userId);
       }
     } catch (error) {
       console.error("削除エラー:", error);
@@ -293,12 +184,13 @@ export default function DashboardPage() {
   };
 
   if (!mounted) return null;
-  if (isLoading)
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-gray-600">
         ログイン状態を確認中...
       </div>
     );
+  }
   if (!user) return null;
 
   return (
@@ -307,10 +199,10 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col">
         <Header />
         <main className="flex-1 px-4 md:px-8 lg:px-28 py-6 md:py-8 lg:py-10">
-        <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+          <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
             <LayoutDashboard className="w-6 h-6 md:w-8 md:h-8 text-gray-700" />
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-            ダッシュボード
+              ダッシュボード
             </h1>
           </div>
           {successMessage && (
@@ -334,32 +226,19 @@ export default function DashboardPage() {
                     <strong>API エラー:</strong> {apiError}
                     <br />
                     <span className="text-red-600">
-                      フォールバックデータを表示しています。
+                      時間をおいて再読み込みするか、ログイン状態を確認してください。
                     </span>
                   </div>
                 </div>
               </div>
             )}
-            {!loading && !apiError && (
-              <div
-                className={`border rounded-lg p-3 ${
-                  dataSource === "real"
-                    ? "bg-green-50 border-green-200"
-                    : "bg-blue-50 border-blue-200"
-                }`}
-              >
+            {!loading && !apiError && dataSource === "real" && (
+              <div className="border rounded-lg p-3 bg-green-50 border-green-200">
                 <div className="text-sm">
-                  {dataSource === "real" ? (
-                    <span className="text-green-800">
-                      <strong>実データ表示中:</strong>{" "}
-                      Supabaseから最新データを取得しました。
-                    </span>
-                  ) : (
-                    <span className="text-blue-800">
-                      <strong>デモデータ表示中:</strong>
-                      登録データがないため、サンプルデータを表示しています。
-                    </span>
-                  )}
+                  <span className="text-green-800">
+                    <strong>実データ表示中:</strong>{" "}
+                    Supabaseから最新データを取得しました。
+                  </span>
                 </div>
               </div>
             )}
@@ -388,6 +267,26 @@ export default function DashboardPage() {
                   ))}
                 </div>
               </div>
+            </div>
+          ) : stats && dataSource === "empty" ? (
+            <div className="bg-white rounded-lg p-6 md:p-10 shadow-sm text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-50">
+                <Meh className="h-6 w-6 text-orange-500" />
+              </div>
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
+                まだ学習ログがありません
+              </h2>
+              <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-6">
+                connpassイベントを検索して保存すると、タグ別の傾向や週ごとの参加数がここに表示されます。
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push("/search")}
+                className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-orange-600"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                イベントを検索する
+              </button>
             </div>
           ) : stats ? (
             <>
