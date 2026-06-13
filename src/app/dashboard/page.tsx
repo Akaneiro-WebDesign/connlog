@@ -148,7 +148,6 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({
           event_id: event.id,
-          note_id: event.noteId,
           external_event_id: event.externalEventId,
         }),
       });
@@ -160,9 +159,17 @@ export default function DashboardPage() {
       }
 
       if (stats) {
-        const updatedEvents = stats.recentEvents.filter(
-          (item) => item.noteId !== event.noteId,
-        );
+        const updatedEvents = stats.recentEvents.filter((item) => {
+          if (event.id != null && item.id != null) {
+            return item.id !== event.id;
+          }
+
+          if (event.externalEventId != null && item.externalEventId != null) {
+            return item.externalEventId !== event.externalEventId;
+          }
+
+          return true;
+        });
         setStats({ ...stats, recentEvents: updatedEvents });
       }
 
