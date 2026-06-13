@@ -97,7 +97,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
   };
 
   const handleSaveEdit = async () => {
-    if (!selectedEvent?.externalEventId) return;
+    if (selectedEvent?.externalEventId == null) return;
 
     try {
       setIsSavingEdit(true);
@@ -521,7 +521,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                   <div className="flex flex-col md:flex-row justify-center gap-3 mt-8 md:mt-15">
                     <button
                       onClick={handleEditEvent}
-                      disabled={!selectedEvent.externalEventId}
+                      disabled={selectedEvent.externalEventId == null}
                       className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Edit3 className="w-4 h-4" />
