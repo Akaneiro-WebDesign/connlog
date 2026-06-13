@@ -21,8 +21,6 @@ type NoteRow = {
   note?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
-  date?: string | null;
-  event_date?: string | null;
 };
 
 type EventRow = {
