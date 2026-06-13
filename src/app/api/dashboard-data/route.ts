@@ -28,6 +28,7 @@ type NoteRow = {
 type EventRow = {
   id?: number | string | null;
   event_id: EventId | null;
+  owner_id?: string | null;
   title?: string | null;
   started_at?: string | null;
   ended_at?: string | null;
@@ -93,34 +94,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. notes と tags を同時に取得
+    // 1. events / notes / tags を取得
     const dbStart = performance.now();
 
-    const [notesResult, tagsResult] = await Promise.all([
+    const [eventsResult, notesResult, tagsResult] = await Promise.all([
+      supabase
+        .from("events")
+        .select("*, organizer")
+        .eq("owner_id", user_id)
+        .order("started_at", { ascending: false }),
+
       supabase
         .from("notes")
         .select("*")
         .eq("user_id", user_id)
         .order("updated_at", { ascending: false }),
 
-      supabase
-        .from("tags")
-        .select("*")
-        .eq("owner_id", user_id),
+      supabase.from("tags").select("*").eq("owner_id", user_id),
     ]);
 
+    const { data: events, error: eventsError } = eventsResult;
     const { data: notes, error: notesError } = notesResult;
     const { data: tags, error: tagsError } = tagsResult;
 
     console.log(
-      "[dashboard-data] notes + tags fetch:",
+      "[dashboard-data] events + notes + tags fetch:",
       Math.round(performance.now() - dbStart),
       "ms",
       {
+        eventsCount: events?.length ?? 0,
         notesCount: notes?.length ?? 0,
         tagsCount: tags?.length ?? 0,
       },
     );
+
+    if (eventsError) {
+      console.error("[dashboard-data] eventsError:", eventsError);
+      return NextResponse.json(
+        {
+          error: "Failed to fetch events data",
+          details: eventsError.message,
+        },
+        { status: 500 },
+      );
+    }
 
     if (notesError) {
       console.error("[dashboard-data] notesError:", notesError);
@@ -144,48 +161,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const typedEvents = (events ?? []) as EventRow[];
     const typedNotes = (notes ?? []) as NoteRow[];
     const typedTags = (tags ?? []) as TagRow[];
 
-    // 2. events テーブル取得
-    let events: EventRow[] = [];
-    if (typedNotes.length > 0) {
-      const eventsStart = performance.now();
-
-      const eventIds = [
-        ...new Set(
-          typedNotes
-          .map((note) => note.event_id)
-          .filter((id): id is EventId => id != null),
-        ),
-      ];
-
-      if (eventIds.length > 0) {
-        const { data: eventsData, error: eventsError } = await supabase
-          .from("events")
-          .select("*, organizer")
-          .in("event_id", eventIds);
-
-        if (eventsError) {
-          console.error("[dashboard-data] eventsError:", eventsError);
-        } else {
-          events = (eventsData ?? []) as EventRow[];
-        }
-      }
-
-      console.log(
-        "[dashboard-data] events fetch:",
-        Math.round(performance.now() - eventsStart),
-        "ms",
-        {
-          eventIdsCount: eventIds.length,
-          eventsCount: events.length,
-        },
-      );
-    }
-
     // データが空の場合は空のレスポンスを返す
-    if ((!notes || notes.length === 0) && (!tags || tags.length === 0)) {
+    if (
+      typedEvents.length === 0 &&
+      typedNotes.length === 0 &&
+      typedTags.length === 0
+    ) {
       console.log(
         "[dashboard-data] total:",
         Math.round(performance.now() - totalStart),
@@ -199,12 +184,12 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 3. find/filter を減らすための Map を作る
+    // 2. find/filter を減らすための Map を作る
     const mapStart = performance.now();
 
     const eventMap = new Map<string, EventRow>();
 
-    for (const event of events) {
+    for (const event of typedEvents) {
       const eventKey = getEventKey(event.event_id);
 
       if (eventKey) {
@@ -212,6 +197,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const noteMap = new Map<string, NoteRow>();
+
+    for (const note of typedNotes) {
+      const eventKey = getEventKey(note.event_id);
+
+      if (!eventKey) continue;
+
+      // notes は updated_at 降順で取得しているため、最初の1件を最新メモとして扱う
+
+      if (!noteMap.has(eventKey)) {
+        noteMap.set(eventKey, note);
+      }
+    }
     const tagsMap = new Map<string, string[]>();
 
     for (const tag of typedTags) {
@@ -232,7 +230,7 @@ export async function POST(request: NextRequest) {
       "ms",
     );
 
-    // 4. タグ別割合の計算
+    // 3. タグ別割合の計算
     const tagCount: Record<string, number> = {};
 
     if (typedTags.length > 0) {
@@ -254,7 +252,7 @@ export async function POST(request: NextRequest) {
       }))
       .sort((a, b) => b.value - a.value);
 
-    // 5. 週ごとの参加数計算（イベント開催日ベース）
+    // 4. 週ごとの参加数計算（イベント開催日ベース）
     const weeklyStart = performance.now();
 
     const weeklyCount: Record<string, number> = {};
@@ -268,53 +266,34 @@ export async function POST(request: NextRequest) {
       weeklyCount[weekKey] = 0;
     }
 
-    // notesの実際のイベント開催日を使用
-    if (typedNotes.length > 0) {
-      typedNotes.forEach((note) => {
-        const eventKey = getEventKey(note.event_id);
-        const relatedEvent = eventKey ? eventMap.get(eventKey) : undefined;
+    // events.started_atをイベント開催日として使用
+    if (typedEvents.length > 0) {
+      typedEvents.forEach((event) => {
+        if (!event.started_at) return;
+        try {
+          let date = new Date(event.started_at);
 
-        let eventDate: string | null = null;
-        if (relatedEvent?.started_at) {
-          eventDate = relatedEvent.started_at;
-        } else {
-          const possibleDates = [
-            note.updated_at,
-            note.created_at,
-            note.date,
-            note.event_date,
-          ].filter((d): d is string => typeof d === "string" && d.trim() !== "");
-
-          const firstPossibleDate = possibleDates[0];
-
-          if (firstPossibleDate) {
-            eventDate = firstPossibleDate;
+          // UTC時刻の場合、日本時間に調整
+          if (
+            event.started_at.includes("T") &&
+            event.started_at.includes("Z")
+          ) {
+            date = new Date(date.getTime() + 9 * 60 * 60 * 1000);
           }
-        }
 
-        if (eventDate) {
-          try {
-            let date = new Date(eventDate);
+          if (!isNaN(date.getTime())) {
+            // 未来のイベントは「参加した回数」に含めない
+            if (date > now) return;
 
-            // UTC時刻の場合、日本時間に調整
-            if (eventDate.includes("T") && eventDate.includes("Z")) {
-              date = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+            const weekKey = getWeekKey(date);
+
+            // 直近5週間に入るものだけ加算
+            if (weekKey in weeklyCount) {
+              weeklyCount[weekKey]++;
             }
-
-            if (!isNaN(date.getTime())) {
-              // 未来のイベントは「参加した回数」に含めない
-              if (date > now) return;
-
-              const weekKey = getWeekKey(date);
-
-              // 直近5週間に入るものだけ加算
-              if (weekKey in weeklyCount) {
-                weeklyCount[weekKey]++;
-              } 
-            }
-          } catch {
-            // 日付解析エラーは無視
           }
+        } catch {
+          // 日付解析エラーは無視
         }
       });
     }
@@ -334,36 +313,43 @@ export async function POST(request: NextRequest) {
       "ms",
     );
 
-    // 6. 最近のイベント履歴作成
+    // 5. 最近のイベント履歴作成
     const recentEventsStart = performance.now();
 
-    const recentEvents = typedNotes.map((note, index) => {
-    const eventKey = getEventKey(note.event_id);
-    const relatedEvent = eventKey ?  eventMap.get(eventKey) : undefined;
+    const sortedEvents = [...typedEvents].sort((a, b) => {
+      const aTime = a.started_at ? new Date(a.started_at).getTime() : 0;
+      const bTime = b.started_at ? new Date(b.started_at).getTime() : 0;
+
+      return bTime - aTime;
+    });
+
+    const recentEvents = sortedEvents.map((event, index) => {
+      const eventKey = getEventKey(event.event_id);
+      const relatedNote = eventKey ? noteMap.get(eventKey) : undefined;
 
       return {
-        id: relatedEvent?.id ?? null,
-        noteId: note.id,
-        externalEventId: note.event_id ?? null,
-        title: relatedEvent?.title || `イベント #${note.event_id || index + 1}`,
-        date: formatEventDate(
-          relatedEvent?.started_at || note.updated_at || note.created_at,
-        ),
-        time: formatEventTime(relatedEvent?.started_at, relatedEvent?.ended_at),
+        id: event.id ?? null,
+        noteId: relatedNote?.id ?? null,
+        externalEventId: event.event_id ?? null,
+        title: event.title || `イベント #${event.event_id || index + 1}`,
+        date: formatEventDate(event.started_at),
+        time: formatEventTime(event.started_at, event.ended_at),
         type: "イベント",
-        organizer: getOrganizerName(relatedEvent),
-        venue: relatedEvent?.place || "オンライン",
+        organizer: getOrganizerName(event),
+        venue: event.place || event.venue || "オンライン",
         tags: eventKey ? (tagsMap.get(eventKey) ?? []).slice(0, 3) : [],
-        description: note.note || "メモはありません",
+        description: relatedNote?.note || "メモはありません",
         event_description:
-          relatedEvent?.catch ||
-          (relatedEvent?.description
-            ? relatedEvent.description.replace(/<[^>]*>/g, "").slice(0, 100) +
-              "..."
+          event.catch ||
+          (event.description
+            ? `${event.description.replace(/<[^>]*>/g, "").slice(0, 100)}...`
             : "イベントの概要はありません"),
         event_url:
-          relatedEvent?.event_url ||
-          (note.event_id ? `https://connpass.com/event/${note.event_id}/` : ""),
+          event.event_url ||
+          event.url ||
+          (event.event_id
+            ? `https://connpass.com/event/${event.event_id}/`
+            : ""),
       };
     });
 

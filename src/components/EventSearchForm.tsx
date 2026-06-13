@@ -211,17 +211,6 @@ export const EventSearchForm = () => {
         return registeredEventIds.has(eventId)
     }
 
-    //　タグの処理（connpassのhash_tagまたは手動タグ）
-    const getTags = (event: ConnpassEvent) => {
-        if (event.tags && Array.isArray(event.tags)) {
-            return event.tags
-        }
-        if (event.hash_tag) {
-            return event.hash_tag.split(',').map((tag: string) => tag.trim()).filter(Boolean)
-        }
-        return []
-    }
-
     return (
         <div className="space-y-6">
             {/* 検索フォーム */}
@@ -311,7 +300,6 @@ export const EventSearchForm = () => {
                             const eventId = event.id ?? event.event_id
                             const isRegistered = eventId ? isEventRegistered(eventId) : false
                             const { date, time } = formatDateTime(event.started_at ?? '', event.ended_at)
-                            const tags = getTags(event)
                             const rawDescription = event.catch || event.description || event.event_description || ''
                             const cleanDescription = sanitizeEventDescription(rawDescription, 100)
 
@@ -342,18 +330,6 @@ export const EventSearchForm = () => {
                                             >
                                                 {event.title || 'タイトル不明'}
                                             </a>
-                                            {tags.length > 0 && (
-                                                <div className="flex flex-wrap gap-2 mb-3">
-                                                    {tags.slice(0, 3).map((tag) => (
-                                                        <span
-                                                            key={tag}
-                                                            className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-700"
-                                                        >
-                                                            {tag}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
 
                                             {/* 場所情報 */}
                                             <div className="flex items-center gap-2 mb-3 md:mb-5">
@@ -364,7 +340,7 @@ export const EventSearchForm = () => {
                                             </div>
 
                                             {/* 説明文 */}
-                                            <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-5">
+                                            <p className="text-xs md:text-sm text-gray-600">
                                                 {cleanDescription}
                                             </p>
                                         </div>

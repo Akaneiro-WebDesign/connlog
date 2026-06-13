@@ -10,7 +10,7 @@ import { Header } from "@/components/Header";
 
 type RecentEvent = {
   id: number | null;
-  noteId: string;
+  noteId: string | null;
   externalEventId?: number | null;
   title: string;
   date: string;

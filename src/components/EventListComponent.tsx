@@ -22,7 +22,7 @@ import {
 // Event型定義
 interface Event {
   id: number | null;
-  noteId: string;
+  noteId: string | null;
   externalEventId?: number | null;
   title: string;
   date: string;
@@ -205,88 +205,105 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
 
   const mainContent = (
     <div className="space-y-3 md:space-y-4">
-      {displayEvents.map((event) => (
-        <div
-          key={event.noteId}
-          className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 lg:p-10 mb-4 md:mb-6 lg:mb-9 shadow-sm hover:shadow-md transition-shadow"
-        >
-          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-            <div className="flex-1">
-              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 lg:gap-13 mb-2">
-                <div className="flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                  <span className="text-sm md:text-base text-gray-500">
-                    {event.date}
-                  </span>
-                  <span className="text-sm md:text-base text-gray-500">
-                    {event.time}
+      {displayEvents.map((event, index) => {
+        const eventKey =
+          event.id != null
+            ? `event-${event.id}`
+            : event.externalEventId != null
+              ? `external-${event.externalEventId}`
+              : event.noteId != null
+                ? `note-${event.noteId}`
+                : `row-${index}`;
+
+        return (
+          <div
+            key={eventKey}
+            className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 lg:p-10 mb-4 md:mb-6 lg:mb-9 shadow-sm hover:shadow-md transition-shadow"
+          >
+            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+              <div className="flex-1">
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 lg:gap-13 mb-2">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                    <span className="text-sm md:text-base text-gray-500">
+                      {event.date}
+                    </span>
+                    <span className="text-sm md:text-base text-gray-500">
+                      {event.time}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                    <span className="px-2 py-0.5 text-gray-700 text-sm md:text-base rounded truncate">
+                      {event.organizer || "主催者未定"}
+                    </span>
+                  </div>
+                </div>
+
+                <a
+                  href={event.event_url || event.url || "https://example.com"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-gray-900 mb-3 md:mb-4 mt-2 md:mt-4 text-lg md:text-xl hover:text-red-600 cursor-pointer block line-clamp-2"
+                >
+                  {event.title}
+                </a>
+
+                <div className="flex items-center gap-2 mb-3 md:mb-5">
+                  <MapPinned className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                  <span className="text-sm md:text-base text-gray-500 truncate">
+                    {event.place || event.venue}
                   </span>
                 </div>
-                <div className="flex items-center">
-                  <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                  <span className="px-2 py-0.5 text-gray-700 text-sm md:text-base rounded truncate">
-                    {event.organizer || "主催者未定"}
-                  </span>
-                </div>
-              </div>
 
-              <a
-                href={event.event_url || event.url || "https://example.com"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-gray-900 mb-3 md:mb-4 mt-2 md:mt-4 text-lg md:text-xl hover:text-red-600 cursor-pointer block line-clamp-2"
-              >
-                {event.title}
-              </a>
+                <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-5">
+                  {sanitizeEventDescription(event.event_description, 100)}
+                </p>
 
-              <div className="flex items-center gap-2 mb-3 md:mb-5">
-                <MapPinned className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                <span className="text-sm md:text-base text-gray-500 truncate">
-                  {event.place || event.venue}
-                </span>
-              </div>
-
-              <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-5">
-                {sanitizeEventDescription(event.event_description, 100)}
-              </p>
-
-              <div className="flex items-start gap-2">
-                <Tag className="w-4 h-4 text-gray-500 flex-shrink-0 mt-1" />
-                <div className="flex flex-wrap gap-1 md:gap-2">
-                  {event.tags.slice(0, 3).map((tag, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-1 px-3 md:px-4 lg:px-6 py-1 bg-gray-100 text-gray-700 text-xs md:text-sm lg:text-base rounded-full"
-                    >
-                      <span className="truncate">{tag}</span>
+                <div className="flex items-start gap-2">
+                  <Tag className="w-4 h-4 text-gray-500 flex-shrink-0 mt-1" />
+                  {event.tags.length > 0 ? (
+                    <div className="flex flex-wrap gap-1 md:gap-2">
+                      {event.tags.slice(0, 3).map((tag, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-1 px-3 md:px-4 lg:px-6 py-1 bg-gray-100 text-gray-700 text-xs md:text-sm lg:text-base rounded-full"
+                        >
+                          <span className="truncate">{tag}</span>
+                        </div>
+                      ))}
+                      {event.tags.length > 3 && (
+                        <div className="flex items-center px-3 md:px-4 py-1 bg-gray-200 text-gray-600 text-xs md:text-sm rounded-full">
+                          +{event.tags.length - 3}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                  {event.tags.length > 3 && (
-                    <div className="flex items-center px-3 md:px-4 py-1 bg-gray-200 text-gray-600 text-xs md:text-sm rounded-full">
-                      +{event.tags.length - 3}
-                    </div>
+                  ) : (
+                    <span className="text-xs md:text-sm text-gray-400 mt-0.5">
+                      タグはありません
+                    </span>
                   )}
                 </div>
               </div>
-            </div>
 
-            <div className="md:ml-4 md:self-start">
-              <button
-                onClick={() => {
-                  setSelectedEvent(event);
-                  setModalMode("view");
-                  setIsModalOpen(true);
-                }}
-                className="w-full md:w-auto p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors cursor-pointer inline-flex items-center justify-center"
-                title="詳細を表示"
-              >
-                <ExternalLink className="w-4 md:w-5 h-4 md:h-5" />
-                <span className="md:hidden ml-2 text-sm">詳細</span>
-              </button>
+              <div className="md:ml-4 md:self-start">
+                <button
+                  onClick={() => {
+                    setSelectedEvent(event);
+                    setModalMode("view");
+                    setIsModalOpen(true);
+                  }}
+                  className="w-full md:w-auto p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors cursor-pointer inline-flex items-center justify-center"
+                  title="詳細を表示"
+                >
+                  <ExternalLink className="w-4 md:w-5 h-4 md:h-5" />
+                  <span className="md:hidden ml-2 text-sm">詳細</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {/* View All Button - ダッシュボード用 */}
       {showViewAllButton && events.length > 0 && (
@@ -467,16 +484,26 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                         タグ
                       </h3>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedEvent.tags.map((tag: string, index: number) => (
-                        <div
-                          key={index}
-                          className="px-3 md:px-4 lg:px-6 py-1 bg-gray-100 text-gray-700 text-sm md:text-base rounded-full"
-                        >
-                          <span>{tag}</span>
-                        </div>
-                      ))}
-                    </div>
+                    {selectedEvent.tags.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedEvent.tags.map(
+                          (tag: string, index: number) => (
+                            <div
+                              key={index}
+                              className="px-3 md:px-4 lg:px-6 py-1 bg-gray-100 text-gray-700 text-sm md:text-base rounded-full"
+                            >
+                              <span>{tag}</span>
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    ) : (
+                      <div className="pl-4 mb-6 md:pl-6">
+                        <p className="text-sm md:text-base text-gray-700">
+                          タグはありません
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-4 mt-6 md:mt-8">
