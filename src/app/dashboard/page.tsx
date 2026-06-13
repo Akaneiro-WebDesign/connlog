@@ -134,7 +134,7 @@ export default function DashboardPage() {
 
   const confirmDeleteEvent = async (event: {
     id: number | null;
-    noteId: string;
+    noteId: string | null;
     externalEventId?: number | null;
     title: string;
   }) => {
