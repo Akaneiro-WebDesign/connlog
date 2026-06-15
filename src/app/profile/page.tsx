@@ -16,6 +16,45 @@ type ProfileResponse = {
   profile: Profile;
 };
 
+const ProfilePageSkeleton = () => {
+  return (
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <Header title="" />
+        <main className="flex-1 px-4 md:px-8 lg:px-28 py-6 md:py-8 lg:py-10">
+          <div
+            className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6 animate-pulse"
+            role="status"
+            aria-label="アカウント設定を読み込み中"
+          >
+            <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gray-200" />
+            <div className="h-8 md:h-9 w-44 md:w-60 rounded bg-gray-200" />
+          </div>
+
+          <div className="bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm">
+            <div className="h-7 w-40 rounded bg-gray-100 animate-pulse mb-6 md:mb-10" />
+
+            <div className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-[250px_1fr] md:gap-8 items-start">
+                <div className="flex justify-center md:justify-start">
+                  <div className="h-46 w-46 md:h-54 md:w-54 rounded-full bg-gray-100 animate-pulse" />
+                </div>
+                <div className="space-y-6">
+                  <div className="h-7 w-40 rounded bg-gray-100 animate-pulse" />
+                  <div className="h-8 w-56 rounded bg-gray-100 animate-pulse" />
+                  <div className="h-7 w-32 rounded bg-gray-100 animate-pulse mt-10" />
+                  <div className="h-36 rounded-lg bg-gray-100 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
+
 export default function ProfilePage() {
   const { user, isLoading } = useUser();
   const router = useRouter();
@@ -34,6 +73,7 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [fetchErrorMessage, setFetchErrorMessage] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -54,6 +94,7 @@ export default function ProfilePage() {
       try {
         setErrorMessage("");
         setSuccessMessage("");
+        setFetchErrorMessage("");
 
         const response = await fetch("/api/profile", { cache: "no-store" });
         const result = await response.json();
@@ -66,7 +107,7 @@ export default function ProfilePage() {
         setProfile(fetchedProfile);
         setForm(fetchedProfile);
       } catch (error) {
-        setErrorMessage(
+        setFetchErrorMessage(
           error instanceof Error
             ? error.message
             : "プロフィールの取得に失敗しました。",
@@ -145,15 +186,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (!mounted) return null;
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen text-gray-600">
-        ログイン状態を確認中...
-      </div>
-    );
-  }
+  if (!mounted || isLoading) return <ProfilePageSkeleton />;
 
   if (!user) return null;
 
@@ -188,158 +221,176 @@ export default function ProfilePage() {
               </div>
             </div>
           ) : null}
-          <div className="bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm">
-            <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-6 md:mb-10">
-              プロフィール
-            </h2>
 
-            {isFetching ? (
-              <div className="space-y-6">
-                <div className="grid gap-6 md:grid-cols-[250px_1fr] md:gap-8 items-start">
-                  <div className="flex justify-center md:justify-start">
-                    <div className="h-46 w-46 md:h-54 md:w-54 rounded-full bg-gray-100 animate-pulse" />
-                  </div>
-                  <div className="space-y-6">
-                    <div className="h-7 w-40 rounded bg-gray-100 animate-pulse" />
-                    <div className="h-8 w-56 rounded bg-gray-100 animate-pulse" />
-                    <div className="h-7 w-32 rounded bg-gray-100 animate-pulse mt-10" />
-                    <div className="h-36 rounded-lg bg-gray-100 animate-pulse" />
+          {fetchErrorMessage ? (
+            <div className="bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm">
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-6 md:mb-10">
+                プロフィール
+              </h2>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-800 text-sm">{fetchErrorMessage}</p>
+                <p className="mt-2 text-sm text-red-700">
+                  時間をおいて再読み込みしてください。
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm">
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-6 md:mb-10">
+                プロフィール
+              </h2>
+
+              {isFetching ? (
+                <div className="space-y-6">
+                  <div className="grid gap-6 md:grid-cols-[250px_1fr] md:gap-8 items-start">
+                    <div className="flex justify-center md:justify-start">
+                      <div className="h-46 w-46 md:h-54 md:w-54 rounded-full bg-gray-100 animate-pulse" />
+                    </div>
+                    <div className="space-y-6">
+                      <div className="h-7 w-40 rounded bg-gray-100 animate-pulse" />
+                      <div className="h-8 w-56 rounded bg-gray-100 animate-pulse" />
+                      <div className="h-7 w-32 rounded bg-gray-100 animate-pulse mt-10" />
+                      <div className="h-36 rounded-lg bg-gray-100 animate-pulse" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : isEditing ? (
-              <form onSubmit={handleSubmit} className="mt-6">
-                <div className="grid gap-6 md:grid-cols-[250px_1fr] md:gap-8 items-start">
-                  <div className="flex justify-center md:justify-start md:self-center">
-                    <div
-                      className="flex h-46 w-46 md:h-54 md:w-54 items-center justify-center rounded-full text-4xl md:text-5xl font-semibold text-white"
-                      style={{ backgroundColor: "#FF8C42" }}
-                    >
-                      {avatarText}
+              ) : isEditing ? (
+                <form onSubmit={handleSubmit} className="mt-6">
+                  <div className="grid gap-6 md:grid-cols-[250px_1fr] md:gap-8 items-start">
+                    <div className="flex justify-center md:justify-start md:self-center">
+                      <div
+                        className="flex h-46 w-46 md:h-54 md:w-54 items-center justify-center rounded-full text-4xl md:text-5xl font-semibold text-white"
+                        style={{ backgroundColor: "#FF8C42" }}
+                      >
+                        {avatarText}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-5">
-                    <div className="flex items-center gap-3">
-                      <span className="inline-block h-7 w-1 rounded-sm bg-gray-900" />
-                      <h3 className="text-lg md:text-l font-semibold text-gray-900">
-                        ユーザー名
-                      </h3>
-                    </div>
-                    <div>
-                      <input
-                        type="text"
-                        value={form.displayName}
-                        onChange={(event) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            displayName: event.target.value,
-                          }))
-                        }
-                        maxLength={50}
-                        className="w-full flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm md:text-base"
-                        placeholder="ユーザー名"
-                      />
-                      <p className="mt-1 text-xs text-gray-500">
-                        {form.displayName.length}/50
-                      </p>
-                    </div>
-                    <div className="mt-10">
-                      <div className="flex items-center gap-3 mb-5">
+                    <div className="space-y-5">
+                      <div className="flex items-center gap-3">
                         <span className="inline-block h-7 w-1 rounded-sm bg-gray-900" />
                         <h3 className="text-lg md:text-l font-semibold text-gray-900">
-                          自己紹介
+                          ユーザー名
                         </h3>
                       </div>
                       <div>
-                        <textarea
-                          value={form.bio}
+                        <input
+                          type="text"
+                          value={form.displayName}
+                          disabled={isSaving}
                           onChange={(event) =>
                             setForm((prev) => ({
                               ...prev,
-                              bio: event.target.value,
+                              displayName: event.target.value,
                             }))
                           }
-                          maxLength={300}
-                          rows={5}
-                          className="min-h-[140px] w-full text-sm md:text-base text-gray-700 whitespace-pre-wrap outline-none resize-none bg-gray-50 rounded-lg p-4 md:p-6"
-                          placeholder="自己紹介"
+                          maxLength={50}
+                          className="w-full flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm md:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          placeholder="ユーザー名"
                         />
                         <p className="mt-1 text-xs text-gray-500">
-                          {form.bio.length}/300
+                          {form.displayName.length}/50
                         </p>
                       </div>
+                      <div className="mt-10">
+                        <div className="flex items-center gap-3 mb-5">
+                          <span className="inline-block h-7 w-1 rounded-sm bg-gray-900" />
+                          <h3 className="text-lg md:text-l font-semibold text-gray-900">
+                            自己紹介
+                          </h3>
+                        </div>
+                        <div>
+                          <textarea
+                            value={form.bio}
+                            disabled={isSaving}
+                            onChange={(event) =>
+                              setForm((prev) => ({
+                                ...prev,
+                                bio: event.target.value,
+                              }))
+                            }
+                            maxLength={300}
+                            rows={5}
+                            className="min-h-[140px] w-full text-sm md:text-base text-gray-700 whitespace-pre-wrap outline-none resize-none bg-gray-50 rounded-lg p-4 md:p-6 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            placeholder="自己紹介"
+                          />
+                          <p className="mt-1 text-xs text-gray-500">
+                            {form.bio.length}/300
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex flex-col md:flex-row justify-center gap-3 mt-8 md:mt-15">
-                  <button
-                    type="submit"
-                    disabled={isSaving}
-                    className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:opacity-50"
-                  >
-                    <Save className="w-4 h-4" />
-                    {isSaving ? "保存中..." : "保存"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    disabled={isSaving}
-                    className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    戻る
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="mt-6">
-                <div className="grid gap-6 md:grid-cols-[250px_1fr] md:gap-8 items-start">
-                  <div className="flex justify-center md:justify-start md:self-center">
-                    <div
-                      className="flex h-46 w-46 md:h-54 md:w-54 items-center justify-center rounded-full text-4xl md:text-5xl font-semibold text-white"
-                      style={{ backgroundColor: "#FF8C42" }}
+                  <div className="flex flex-col md:flex-row justify-center gap-3 mt-8 md:mt-15">
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {avatarText}
-                    </div>
+                      <Save className="w-4 h-4" />
+                      {isSaving ? "保存中..." : "保存"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancel}
+                      disabled={isSaving}
+                      className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      戻る
+                    </button>
                   </div>
-                  <div className="space-y-5">
-                    <div className="flex items-center gap-3">
-                      <span className="inline-block h-7 w-1 rounded-sm bg-gray-900" />
-                      <h3 className="text-lg md:text-l font-semibold text-gray-900">
-                        ユーザー名
-                      </h3>
+                </form>
+              ) : (
+                <div className="mt-6">
+                  <div className="grid gap-6 md:grid-cols-[250px_1fr] md:gap-8 items-start">
+                    <div className="flex justify-center md:justify-start md:self-center">
+                      <div
+                        className="flex h-46 w-46 md:h-54 md:w-54 items-center justify-center rounded-full text-4xl md:text-5xl font-semibold text-white"
+                        style={{ backgroundColor: "#FF8C42" }}
+                      >
+                        {avatarText}
+                      </div>
                     </div>
-                    <div className="text-lg md:text-xl text-gray-900 break-words">
-                      {profile.displayName || "未設定"}
-                    </div>
-                    <div className="mt-10">
-                      <div className="flex items-center gap-3 mb-5">
+                    <div className="space-y-5">
+                      <div className="flex items-center gap-3">
                         <span className="inline-block h-7 w-1 rounded-sm bg-gray-900" />
                         <h3 className="text-lg md:text-l font-semibold text-gray-900">
-                          自己紹介
+                          ユーザー名
                         </h3>
                       </div>
-                      <div className="min-h-[140px] w-full text-sm md:text-base text-gray-700 whitespace-pre-wrap outline-none resize-none bg-gray-50 rounded-lg p-4 md:p-6">
-                        {profile.bio || "設定されていません。"}
+                      <div className="text-lg md:text-xl text-gray-900 break-words">
+                        {profile.displayName || "未設定"}
+                      </div>
+                      <div className="mt-10">
+                        <div className="flex items-center gap-3 mb-5">
+                          <span className="inline-block h-7 w-1 rounded-sm bg-gray-900" />
+                          <h3 className="text-lg md:text-l font-semibold text-gray-900">
+                            自己紹介
+                          </h3>
+                        </div>
+                        <div className="min-h-[140px] w-full text-sm md:text-base text-gray-700 whitespace-pre-wrap outline-none resize-none bg-gray-50 rounded-lg p-4 md:p-6">
+                          {profile.bio || "設定されていません。"}
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <div className="flex flex-col md:flex-row justify-center gap-3 mt-8 md:mt-15">
+                    <button
+                      type="button"
+                      onClick={handleEditStart}
+                      className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      編集
+                    </button>
+                  </div>
                 </div>
-                <div className="flex flex-col md:flex-row justify-center gap-3 mt-8 md:mt-15">
-                  <button
-                    type="button"
-                    onClick={handleEditStart}
-                    className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                    編集
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </main>
       </div>
     </div>
