@@ -2,10 +2,19 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckCircle, UserCog, Edit3, Save, RotateCcw } from 'lucide-react';
+import {
+  AlertTriangle,
+  CheckCircle,
+  Edit3,
+  RotateCcw,
+  Save,
+  Trash2,
+  UserCog,
+} from 'lucide-react';
 import { useUser } from '@/components/UserProvider';
 import Sidebar from '@/components/Sidebar';
 import { Header } from '@/components/Header';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 type Profile = {
   displayName: string;
@@ -74,6 +83,9 @@ export default function ProfilePage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [fetchErrorMessage, setFetchErrorMessage] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -183,6 +195,39 @@ export default function ProfilePage() {
       );
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      setIsDeletingAccount(true);
+      setDeleteErrorMessage("");
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      const response = await fetch("/api/account/delete", {
+        method: "DELETE",
+      });
+
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(result?.error || "アカウントの削除に失敗しました。");
+      }
+
+      const supabase = createSupabaseBrowserClient();
+      await supabase.auth.signOut();
+
+      router.replace("/login?accountDeleted=1");
+      router.refresh();
+    } catch (error) {
+      setDeleteErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "アカウントの削除に失敗しました。",
+      );
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -389,8 +434,98 @@ export default function ProfilePage() {
                   </div>
                 </div>
               )}
+
+              {!isFetching && !isEditing ? (
+                <div className="mt-8 border-t border-gray-100 pt-5 text-right">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDeleteConfirm(true);
+                      setDeleteErrorMessage("");
+                    }}
+                    disabled={isDeletingAccount}
+                    className="text-sm text-gray-500 underline-offset-4 hover:text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    アカウントを削除する
+                  </button>
+                </div>
+              ) : null}
             </div>
           )}
+
+          {showDeleteConfirm ? (
+            <div
+              className="fixed inset-0 flex items-center justify-center z-[60] p-4"
+              style={{ backgroundColor: "rgba(0, 0, 0, 0.8)" }}
+            >
+              <div className="bg-white rounded-lg max-w-md w-full mx-4">
+                <div className="p-6">
+                  <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full">
+                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+                    アカウントを削除しますか？
+                  </h3>
+                  <p className="text-sm text-gray-600 text-center mb-2 leading-6">
+                    削除すると、以下の情報がすべて失われます。
+                  </p>
+                  <p className="text-sm text-red-600 text-center">
+                    この操作は取り消すことができません。
+                  </p>
+                  <div className="mx-auto mt-5 mb-6 w-full max-w-xs rounded-lg border border-red-100 bg-red-50 p-4">
+                    <ul className="list-disc space-y-2 pl-5 text-left text-sm text-gray-700">
+                      <li>登録イベント</li>
+                      <li>タグ</li>
+                      <li>メモ</li>
+                      <li>プロフィール情報</li>
+                    </ul>
+                  </div>
+
+                  {deleteErrorMessage ? (
+                    <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
+                      <p className="text-sm text-red-800">
+                        {deleteErrorMessage}
+                      </p>
+                    </div>
+                  ) : null}
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowDeleteConfirm(false);
+                        setDeleteErrorMessage("");
+                      }}
+                      disabled={isDeletingAccount}
+                      className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
+                    >
+                      キャンセル
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleDeleteAccount}
+                      disabled={isDeletingAccount}
+                      className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {isDeletingAccount ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          削除中...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="w-4 h-4" />
+                          削除
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </main>
       </div>
     </div>
