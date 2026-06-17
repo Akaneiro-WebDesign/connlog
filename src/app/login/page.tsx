@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -9,12 +9,24 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [noticeMsg, setNoticeMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+
+    if (searchParams.get("accountDeleted") === "1") {
+      setNoticeMsg("アカウントを削除しました。");
+
+      window.history.replaceState(null, "", "/login");
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
+    setNoticeMsg("");
     setIsLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -62,6 +74,12 @@ export default function LoginPage() {
           <div className="mb-8 hidden lg:block">
             <h2 className="text-2xl font-bold text-gray-900">ログイン</h2>
           </div>
+
+          {noticeMsg && (
+            <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+              {noticeMsg}
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
