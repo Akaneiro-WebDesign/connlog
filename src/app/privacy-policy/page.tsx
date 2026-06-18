@@ -141,6 +141,17 @@ export default function PrivacyPolicyPage() {
               </Link>
             </li>
             <li aria-hidden="true" className="text-gray-400">
+              /
+            </li>
+            <li>
+              <Link
+                href="/signup"
+                className="font-medium underline-offset-4 hover:text-gray-700 hover:underline"
+              >
+                新規登録画面
+              </Link>
+            </li>
+            <li aria-hidden="true" className="text-gray-400">
               ›
             </li>
             <li aria-current="page" className="font-medium text-gray-700">
