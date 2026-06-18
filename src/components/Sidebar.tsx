@@ -166,7 +166,7 @@ export default function Sidebar({ className }: SidebarProps) {
         {/* フッター */}
         <div className="mt-auto flex-shrink-0 border-t border-gray-300 px-3 py-2 lg:px-4">
             <div className="text-center text-xs text-gray-400">
-                <p>© 2025 ConnLog</p>
+                <p>© 2025-2026 ConnLog</p>
             </div>
         </div>
     </div>

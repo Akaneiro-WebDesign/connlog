@@ -140,6 +140,16 @@ export default function SignUpPage() {
               ログイン
             </Link>
           </p>
+          <p className="mt-4 text-center text-xs text-gray-500">
+            新規登録前に
+            <Link
+              href="/privacy-policy"
+              className="mx-1 underline-offset-4 hover:underline"
+            >
+              プライバシーポリシー
+            </Link>
+            をご確認ください。
+          </p>
         </div>
       </section>
     </main>
