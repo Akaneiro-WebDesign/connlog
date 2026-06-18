@@ -147,6 +147,10 @@ export default function LoginPage() {
             </Link>
           </p>
           <p className="mt-4 text-center text-xs text-gray-500">
+            <Link href="/terms" className="underline-offset-4 hover:underline">
+              利用規約
+            </Link>
+            <span className="mx-2 text-gray-300">/</span>
             <Link
               href="/privacy-policy"
               className="underline-offset-4 hover:underline"

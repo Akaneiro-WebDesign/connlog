@@ -143,6 +143,13 @@ export default function SignUpPage() {
           <p className="mt-4 text-center text-xs text-gray-500">
             新規登録前に
             <Link
+              href="/terms"
+              className="mx-1 underline-offset-4 hover:underline"
+            >
+              利用規約
+            </Link>
+            と
+            <Link
               href="/privacy-policy"
               className="mx-1 underline-offset-4 hover:underline"
             >
