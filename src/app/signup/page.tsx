@@ -11,12 +11,19 @@ export default function SignUpPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
     setError("");
+
+    if (!agreedToTerms) {
+      setError("利用規約とプライバシーポリシーに同意してください。");
+      return;
+    }
+
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -110,6 +117,38 @@ export default function SignUpPage() {
               />
             </div>
 
+            <div className="pt-1">
+              <label
+                htmlFor="terms-consent"
+                className="flex items-start gap-3 text-sm leading-6 text-gray-700"
+              >
+                <input
+                  id="terms-consent"
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  disabled={loading}
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-green-600 focus:outline-none focus:ring-2 focus:ring-green-100 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+                <span>
+                  <Link
+                    href="/terms"
+                    className="font-medium text-blue-600 underline-offset-4 hover:underline"
+                  >
+                    利用規約
+                  </Link>
+                  と
+                  <Link
+                    href="/privacy-policy"
+                    className="font-medium text-blue-600 underline-offset-4 hover:underline"
+                  >
+                    プライバシーポリシー
+                  </Link>
+                  に同意します。
+                </span>
+              </label>
+            </div>
+
             {message && (
               <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
                 {message}
@@ -124,7 +163,7 @@ export default function SignUpPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !agreedToTerms}
               className="w-full mt-10 rounded-lg bg-gray-900 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? "登録中" : "新規登録"}
@@ -139,23 +178,6 @@ export default function SignUpPage() {
             >
               ログイン
             </Link>
-          </p>
-          <p className="mt-4 text-center text-xs text-gray-500">
-            新規登録前に
-            <Link
-              href="/terms"
-              className="mx-1 underline-offset-4 hover:underline"
-            >
-              利用規約
-            </Link>
-            と
-            <Link
-              href="/privacy-policy"
-              className="mx-1 underline-offset-4 hover:underline"
-            >
-              プライバシーポリシー
-            </Link>
-            をご確認ください。
           </p>
         </div>
       </section>
