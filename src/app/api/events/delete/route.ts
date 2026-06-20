@@ -90,6 +90,7 @@ export async function DELETE(request: NextRequest) {
       .from("events")
       .delete()
       .eq("id", event_id)
+      .eq("owner_id", user.id)
       .select();
 
     if (deleteError) {

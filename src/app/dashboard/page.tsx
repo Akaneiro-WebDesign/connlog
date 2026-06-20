@@ -77,12 +77,6 @@ export default function DashboardPage() {
 
       const response = await fetch("/api/dashboard-data", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: targetUserId,
-        }),
       });
 
       if (!response.ok) {

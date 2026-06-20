@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // Color palette for tags
 const TAG_COLORS = [
@@ -54,43 +54,25 @@ const getEventKey = (eventId: EventId | null | undefined) => {
   return String(eventId);
 };
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   const totalStart = performance.now();
 
   try {
     console.log("[dashboard-data] start");
 
-    // 環境変数チェック
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabase = await createSupabaseServerClient();
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      return NextResponse.json(
-        {
-          error: "環境変数が未設定です",
-        },
-        { status: 500 },
-      );
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error("[dashboard-data] auth error:", authError);
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    const bodyStart = performance.now();
-    const body = await request.json();
-    console.log(
-      "[dashboard-data] request.json:",
-      Math.round(performance.now() - bodyStart),
-      "ms",
-    );
-
-    const { user_id } = body;
-
-    if (!user_id) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 },
-      );
-    }
+    const userId = user.id;
 
     // 1. events / notes / tags を取得
     const dbStart = performance.now();
@@ -99,16 +81,16 @@ export async function POST(request: NextRequest) {
       supabase
         .from("events")
         .select("*, organizer")
-        .eq("owner_id", user_id)
+        .eq("owner_id", userId)
         .order("started_at", { ascending: false }),
 
       supabase
         .from("notes")
         .select("*")
-        .eq("user_id", user_id)
+        .eq("user_id", userId)
         .order("updated_at", { ascending: false }),
 
-      supabase.from("tags").select("*").eq("owner_id", user_id),
+      supabase.from("tags").select("*").eq("owner_id", userId),
     ]);
 
     const { data: events, error: eventsError } = eventsResult;
