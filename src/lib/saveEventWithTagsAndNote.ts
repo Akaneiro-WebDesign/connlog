@@ -61,6 +61,7 @@ export const convertConnpassToDatabase = (
             connpassEvent.organizer ||
             '主催者未定',
         owner_id: userId,
+        user_id: userId,
         created_by: userId,
     }
 }
@@ -104,7 +105,7 @@ export const saveEventWithTagsAndNote = async (
             .from('events')
             .select('id')
             .eq('event_id', eventIdString)
-            .eq('owner_id', userId)
+            .eq('user_id', userId)
             .maybeSingle()
 
         if (selectError) {
@@ -121,7 +122,7 @@ export const saveEventWithTagsAndNote = async (
                 .from('events')
                 .update(eventData)
                 .eq('event_id', eventIdString)
-                .eq('owner_id', userId)
+                .eq('user_id', userId)
                 .select()
                 .single()
 
@@ -150,7 +151,7 @@ export const saveEventWithTagsAndNote = async (
             .from('tags')
             .delete()
             .eq('event_id', eventIdString)
-            .eq('created_by_id', userId)
+            .eq('user_id', userId)
 
         if (deleteTagsError) {
             console.error('タグ削除エラー:', deleteTagsError)
@@ -164,6 +165,7 @@ export const saveEventWithTagsAndNote = async (
                     event_id: eventIdString,
                     tag_name: tag.trim(),
                     owner_id: userId,
+                    user_id: userId,
                     created_by_id: userId,
                 }))
 
@@ -238,7 +240,7 @@ export const getUserRegisteredEventIds = async (): Promise<Set<number>> => {
         const { data, error } = await supabase
             .from('events')
             .select('event_id')
-            .eq('owner_id', user.id)
+            .eq('user_id', user.id)
 
         if (error) {
             console.error('登録済みイベント取得エラー:', error)

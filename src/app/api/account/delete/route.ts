@@ -56,7 +56,7 @@ export async function DELETE() {
     const { error: tagsByOwnerDeleteError } = await supabaseAdmin
       .from("tags")
       .delete()
-      .eq("owner_id", userId);
+      .eq("user_id", userId);
 
     if (tagsByOwnerDeleteError) {
       console.error(
@@ -86,7 +86,7 @@ export async function DELETE() {
     const { error: eventsDeleteError } = await supabaseAdmin
       .from("events")
       .delete()
-      .eq("owner_id", userId);
+      .eq("user_id", userId);
 
     if (eventsDeleteError) {
       console.error(
