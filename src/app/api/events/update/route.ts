@@ -30,7 +30,7 @@ export async function PUT(request: NextRequest) {
       .from("tags")
       .delete()
       .eq("event_id", eventIdString)
-      .eq("owner_id", user.id);
+      .eq("user_id", user.id);
 
     if (deleteTagsError) {
       console.error("タグ削除エラー:", deleteTagsError);
@@ -48,6 +48,7 @@ export async function PUT(request: NextRequest) {
           event_id: eventIdString,
           tag_name: tag.trim(),
           owner_id: user.id,
+          user_id: user.id,
           created_by_id: user.id,
         }));
 

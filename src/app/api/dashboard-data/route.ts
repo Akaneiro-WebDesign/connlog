@@ -27,6 +27,7 @@ type EventRow = {
   id?: number | string | null;
   event_id: EventId | null;
   owner_id?: string | null;
+  user_id?: string | null;
   title?: string | null;
   started_at?: string | null;
   ended_at?: string | null;
@@ -46,6 +47,7 @@ type TagRow = {
   tag_name?: string | null;
   name?: string | null;
   owner_id?: string | null;
+  user_id?: string | null;
   created_by_id?: string | null;
 };
 
@@ -81,7 +83,7 @@ export async function POST() {
       supabase
         .from("events")
         .select("*, organizer")
-        .eq("owner_id", userId)
+        .eq("user_id", userId)
         .order("started_at", { ascending: false }),
 
       supabase
@@ -90,7 +92,7 @@ export async function POST() {
         .eq("user_id", userId)
         .order("updated_at", { ascending: false }),
 
-      supabase.from("tags").select("*").eq("owner_id", userId),
+      supabase.from("tags").select("*").eq("user_id", userId),
     ]);
 
     const { data: events, error: eventsError } = eventsResult;

@@ -30,7 +30,7 @@ async function deleteRelatedData(
     .from("tags")
     .delete()
     .eq("event_id", externalEventId)
-    .eq("owner_id", userId);
+    .eq("user_id", userId);
 
   if (tagsDeleteError) {
     console.error("tags削除エラー:", tagsDeleteError);
@@ -90,7 +90,7 @@ export async function DELETE(request: NextRequest) {
       .from("events")
       .delete()
       .eq("id", event_id)
-      .eq("owner_id", user.id)
+      .eq("user_id", user.id)
       .select();
 
     if (deleteError) {
