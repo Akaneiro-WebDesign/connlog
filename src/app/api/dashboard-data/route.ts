@@ -213,10 +213,23 @@ export async function POST() {
     );
 
     // 3. タグ別割合の計算
+    const now = new Date();
+
+    const pastEventKeys = new Set(
+      typedEvents
+        .filter((event) => isPastEvent(event, now))
+        .map((event) => getEventKey(event.event_id))
+        .filter((eventKey): eventKey is string => eventKey !== null),
+    );
+
     const tagCount: Record<string, number> = {};
 
     if (typedTags.length > 0) {
       typedTags.forEach((tag) => {
+        const eventKey = getEventKey(tag.event_id);
+
+        if (!eventKey || !pastEventKeys.has(eventKey)) return;
+
         const tagName = tag.tag_name || tag.name || "Unknown";
         tagCount[tagName] = (tagCount[tagName] || 0) + 1;
       });
@@ -238,7 +251,6 @@ export async function POST() {
     const weeklyStart = performance.now();
 
     const weeklyCount: Record<string, number> = {};
-    const now = new Date();
 
     // 過去5週間の初期化
     for (let i = 4; i >= 0; i--) {
@@ -251,31 +263,18 @@ export async function POST() {
     // events.started_atをイベント開催日として使用
     if (typedEvents.length > 0) {
       typedEvents.forEach((event) => {
-        if (!event.started_at) return;
-        try {
-          let date = new Date(event.started_at);
+        const date = getEventDateForAggregation(event);
 
-          // UTC時刻の場合、日本時間に調整
-          if (
-            event.started_at.includes("T") &&
-            event.started_at.includes("Z")
-          ) {
-            date = new Date(date.getTime() + 9 * 60 * 60 * 1000);
-          }
+        if (!date) return;
 
-          if (!isNaN(date.getTime())) {
-            // 未来のイベントは「参加した回数」に含めない
-            if (date > now) return;
+        // 未来のイベントは「参加した回数」に含めない
+        if (date > now) return;
 
-            const weekKey = getWeekKey(date);
+        const weekKey = getWeekKey(date);
 
-            // 直近5週間に入るものだけ加算
-            if (weekKey in weeklyCount) {
-              weeklyCount[weekKey]++;
-            }
-          }
-        } catch {
-          // 日付解析エラーは無視
+        // 直近5週間に入るものだけ加算
+        if (weekKey in weeklyCount) {
+          weeklyCount[weekKey]++;
         }
       });
     }
@@ -372,6 +371,31 @@ export async function POST() {
 }
 
 // Helper functions
+function getEventDateForAggregation(event: EventRow): Date | null {
+  if (!event.started_at) return null;
+
+  try {
+    let date = new Date(event.started_at);
+
+    if (isNaN(date.getTime())) return null;
+
+    // UTC時刻の場合、日本時間に調整
+    if (event.started_at.includes("T") && event.started_at.includes("Z")) {
+      date = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    }
+
+    return date;
+  } catch {
+    return null;
+  }
+}
+
+function isPastEvent(event: EventRow, now: Date): boolean {
+  const date = getEventDateForAggregation(event);
+
+  return date !== null && date <= now;
+}
+
 function getWeekKey(date: Date): string {
   const d = new Date(date);
   const day = d.getDay();
