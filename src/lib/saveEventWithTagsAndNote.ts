@@ -115,8 +115,10 @@ export const saveEventWithTagsAndNote = async (
         }
 
         let savedEvent
-
+        let isUpdate = false
+        
         if (existingEvent) {
+            isUpdate = true
             // 既存データを更新
             const { data, error: updateError } = await supabase
                 .from('events')
@@ -215,6 +217,7 @@ export const saveEventWithTagsAndNote = async (
             event: savedEvent,
             tags: tagsAndNote.tags || [],
             note: tagsAndNote.note || '',
+            isUpdate,
         }
     } catch (error) {
         console.error('保存処理でエラーが発生しました:', error)

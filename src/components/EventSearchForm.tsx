@@ -190,16 +190,19 @@ export const EventSearchForm = () => {
         }
 
         try {
-            await saveEventWithTagsAndNote(selectedEvent, data)
+            const result = await saveEventWithTagsAndNote(selectedEvent, data)
 
             // UI状態を更新
-            const eventId = selectedEvent.id
+            const eventId = selectedEvent.id ?? selectedEvent.event_id
             if (eventId) {
-                setRegisteredEventIds(prev => new Set([...prev, eventId]))
+                setRegisteredEventIds(prev => new Set([...prev, Number(eventId)]))
             }
-
-            alert(`保存完了！\n\nイベント: ${selectedEvent.title}\nタグ: ${data.tags.join(', ') || 'なし'}\nメモ: ${data.note || 'なし'}`)
-
+            
+            const successMessage = result.isUpdate
+                ? '登録済みイベントのタグ・メモを更新しました'
+                : 'イベントを登録しました'
+            
+            alert(`${successMessage}\n\nイベント: ${selectedEvent.title}\nタグ: ${data.tags.join(', ') || 'なし'}\nメモ: ${data.note || 'なし'}`)
             handleModalClose()
         } catch (error) {
             alert(`保存に失敗しました\n\nエラー: ${error instanceof Error ? error.message : '不明なエラー'}\n\nブラウザのConsoleで詳細を確認してください。`)
