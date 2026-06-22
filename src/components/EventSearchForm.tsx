@@ -376,7 +376,13 @@ export const EventSearchForm = () => {
                                                 <div className="flex items-center">
                                                     <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
                                                     <span className="px-2 py-0.5 text-gray-700 text-sm md:text-base rounded truncate">
-                                                        {event.owner_display_name || event.organizer || '主催者不明'}
+                                                        {
+                                                            event.group?.title ||
+                                                            event.organizer ||
+                                                            event.owner_text ||
+                                                            event.owner_display_name ||
+                                                            '主催者不明'
+                                                        }
                                                     </span>
                                                 </div>
                                             </div>

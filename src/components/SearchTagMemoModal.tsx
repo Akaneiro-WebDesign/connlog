@@ -138,7 +138,13 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                                 <div className="flex items-center gap-1">
                                     <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
                                     <span className="text-gray-700 text-sm md:text-base">
-                                        {event.owner_display_name || event.organizer || '主催者未定'}
+                                        {
+                                            event.group?.title ||
+                                            event.organizer ||
+                                            event.owner_text ||
+                                            event.owner_display_name ||
+                                            '主催者未定'
+                                        }
                                     </span>
                                 </div>
                             </div>
