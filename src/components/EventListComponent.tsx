@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { sanitizeEventDescription } from "@/lib/sanitizeEventDescription"; // 共通関数をimport
 import {
   ExternalLink,
@@ -17,6 +17,7 @@ import {
   ChevronsRight,
   Save,
   RotateCcw,
+  Check,
 } from "lucide-react";
 
 // Event型定義
@@ -53,6 +54,13 @@ interface EventListComponentProps {
   isDeleting?: boolean;
 }
 
+type SaveFeedback = {
+  title: string;
+  description: string;
+};
+
+const EVENT_UPDATE_FEEDBACK_KEY = "connlog:event-update-feedback";
+
 const EventListComponent: React.FC<EventListComponentProps> = ({
   events,
   showViewAllButton = true,
@@ -75,6 +83,30 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
   const [editTagInput, setEditTagInput] = useState("");
   const [editNote, setEditNote] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [saveFeedback, setSaveFeedback] = useState<SaveFeedback | null>(null);
+
+  useEffect(() => {
+    const eventTitle = window.sessionStorage.getItem(EVENT_UPDATE_FEEDBACK_KEY);
+
+    if (!eventTitle) return;
+
+    setSaveFeedback({
+      title: "タグ・メモを更新しました",
+      description: eventTitle,
+    });
+
+    window.sessionStorage.removeItem(EVENT_UPDATE_FEEDBACK_KEY);
+  }, []);
+
+  useEffect(() => {
+    if (!saveFeedback) return;
+
+    const timer = window.setTimeout(() => {
+      setSaveFeedback(null);
+    }, 6000);
+
+    return () => window.clearTimeout(timer);
+  }, [saveFeedback]);
 
   const ITEMS_PER_PAGE = 10;
 
@@ -119,6 +151,11 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
       if (!response.ok) {
         throw new Error(result.error || "更新に失敗しました");
       }
+
+      window.sessionStorage.setItem(
+        EVENT_UPDATE_FEEDBACK_KEY,
+        selectedEvent.title || "タイトル不明",
+      );
 
       setModalMode("view");
       window.location.reload();
@@ -389,6 +426,40 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
 
   return (
     <>
+      {saveFeedback && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed left-4 right-4 bottom-4 z-50 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-6 md:w-[420px]"
+        >
+          <div className="flex items-start gap-3">
+            <div
+              aria-hidden="true"
+              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700"
+            >
+              <Check className="h-4 w-4" />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="font-medium leading-5 text-gray-900">
+                {saveFeedback.title}
+              </p>
+              <p className="mt-0.5 line-clamp-1 text-xs leading-5 text-gray-500">
+                {saveFeedback.description}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSaveFeedback(null)}
+              aria-label="通知を閉じる"
+              className="-mr-1 -mt-1 shrink-0 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
       {showContainer ? (
         <div className="bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm">
           {showHeader && (
