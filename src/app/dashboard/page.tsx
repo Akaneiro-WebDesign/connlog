@@ -110,6 +110,15 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    if (isLoading || !mounted) return;
+
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+  }, [user, isLoading, mounted, router]);
+
+  useEffect(() => {
     if (!mounted || isLoading || !userId) return;
     loadDashboardData(userId);
   }, [mounted, isLoading, userId, loadDashboardData]);
