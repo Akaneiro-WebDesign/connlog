@@ -18,6 +18,7 @@ type ConnpassEvent = {
     description?: string | null
     catch?: string | null
     owner_display_name?: string
+    owner_text?: string
     organizer?: string
     group?: {
         title?: string
@@ -56,9 +57,10 @@ export const convertConnpassToDatabase = (
         description: connpassEvent.description || null,
         catch: connpassEvent.catch || null,
         organizer:
-            connpassEvent.owner_display_name ||
             connpassEvent.group?.title ||
             connpassEvent.organizer ||
+            connpassEvent.owner_text ||
+            connpassEvent.owner_display_name ||
             '主催者未定',
         owner_id: userId,
         user_id: userId,
