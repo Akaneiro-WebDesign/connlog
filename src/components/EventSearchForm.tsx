@@ -17,7 +17,9 @@ import {
     Loader,
     FilePlus,
     ChevronsLeft,
-    ChevronsRight
+    ChevronsRight,
+    X,
+    Check
 } from 'lucide-react'
 
 type ConnpassEvent = {
@@ -44,6 +46,11 @@ type ConnpassEvent = {
     tags?: string[]
 }
 
+type SaveFeedback = {
+    title: string
+    description: string
+}
+
 /**
  * ConnLogメイン検索フォーム
  * connpassイベント検索・表示・登録機能の統合コンポーネント
@@ -60,6 +67,7 @@ export const EventSearchForm = () => {
     const [searchInput, setSearchInput] = useState('')
     const [events, setEvents] = useState<ConnpassEvent[]>([])
     const [isLoading, setIsLoading] = useState(false)
+    const [saveFeedback, setSaveFeedback] = useState<SaveFeedback | null>(null)
 
     // ページネーション用の状態管理
     const [currentPage, setCurrentPage] = useState(1)
@@ -78,6 +86,16 @@ export const EventSearchForm = () => {
     useEffect(() => {
         loadRegisteredEventIds()
     }, [])
+
+    useEffect(() => {
+        if (!saveFeedback) return
+
+        const timer = window.setTimeout(() => {
+            setSaveFeedback(null)
+        }, 6000)
+
+        return () => window.clearTimeout(timer)
+    }, [saveFeedback])
 
     const loadRegisteredEventIds = async () => {
         try {
@@ -99,6 +117,7 @@ export const EventSearchForm = () => {
 
         setIsLoading(true)
         setCurrentPage(1)
+        setSaveFeedback(null)
 
         try {
             let searchResults: ConnpassEvent[] = []
@@ -199,13 +218,17 @@ export const EventSearchForm = () => {
             }
             
             const successMessage = result.isUpdate
-                ? '登録済みイベントのタグ・メモを更新しました'
+                ? 'タグ・メモを更新しました'
                 : 'イベントを登録しました'
-            
-            alert(`${successMessage}\n\nイベント: ${selectedEvent.title}\nタグ: ${data.tags.join(', ') || 'なし'}\nメモ: ${data.note || 'なし'}`)
+            setSaveFeedback({
+                title: successMessage,
+                description: selectedEvent.title || 'タイトル不明',
+            })
+
             handleModalClose()
         } catch (error) {
-            alert(`保存に失敗しました\n\nエラー: ${error instanceof Error ? error.message : '不明なエラー'}\n\nブラウザのConsoleで詳細を確認してください。`)
+            console.error('保存に失敗しました:', error)
+            alert('保存に失敗しました。\n\n時間をおいてもう一度お試しください。')
         }
     }
 
@@ -213,9 +236,42 @@ export const EventSearchForm = () => {
     const isEventRegistered = (eventId: number) => {
         return registeredEventIds.has(eventId)
     }
+    
 
     return (
         <div className="space-y-6">
+            {saveFeedback && (
+            <div
+                role="status"
+                aria-live="polite"
+                className="fixed left-4 right-4 bottom-4 z-50 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-6 md:w-[420px]"
+            >
+                <div className="flex items-start gap-3">
+                    <div
+                    aria-hidden="true"
+                    className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700"
+                    >
+                    <Check className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <p className="font-medium leading-5 text-gray-900">
+                            {saveFeedback.title}
+                        </p>
+                        <p className="mt-0.5 line-clamp-1 text-xs leading-5 text-gray-500">
+                            {saveFeedback.description}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setSaveFeedback(null)}
+                        aria-label="通知を閉じる"
+                        className="-mr-1 -mt-1 shrink-0 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+            </div>
+        )}
             {/* 検索フォーム */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
                 <form onSubmit={handleSearch} className="space-y-4">
