@@ -53,21 +53,39 @@ export async function DELETE() {
       );
     }
 
-    const { error: tagsByOwnerDeleteError } = await supabaseAdmin
+    const { error: tagsByUserIdDeleteError } = await supabaseAdmin
       .from("tags")
       .delete()
       .eq("user_id", userId);
 
-    if (tagsByOwnerDeleteError) {
+    if (tagsByUserIdDeleteError) {
       console.error(
-        "[DELETE /api/account/delete] tags owner delete error:",
-        tagsByOwnerDeleteError,
+        "[DELETE /api/account/delete] tags user_id delete error:",
+        tagsByUserIdDeleteError,
+      );
+
+      return NextResponse.json(
+        { error: "タグの削除に失敗しました。" },
+        { status: 500 },
+      );
+    }
+
+    const { error: tagsByOwnerIdDeleteError } = await supabaseAdmin
+      .from("tags")
+      .delete()
+      .eq("owner_id", userId);
+
+    if (tagsByOwnerIdDeleteError) {
+      console.error(
+        "[DELETE /api/account/delete] tags owner_id delete error:",
+        tagsByOwnerIdDeleteError,
       );
       return NextResponse.json(
         { error: "タグの削除に失敗しました。" },
         { status: 500 },
       );
     }
+
     const { error: tagsByCreatedByDeleteError } = await supabaseAdmin
       .from("tags")
       .delete()
@@ -83,15 +101,48 @@ export async function DELETE() {
         { status: 500 },
       );
     }
-    const { error: eventsDeleteError } = await supabaseAdmin
+
+    const { error: eventsByUserIdDeleteError } = await supabaseAdmin
       .from("events")
       .delete()
       .eq("user_id", userId);
 
-    if (eventsDeleteError) {
+    if (eventsByUserIdDeleteError) {
       console.error(
-        "[DELETE /api/account/delete] events delete error:",
-        eventsDeleteError,
+        "[DELETE /api/account/delete] events user_id delete error:",
+        eventsByUserIdDeleteError,
+      );
+      return NextResponse.json(
+        { error: "登録イベントの削除に失敗しました。" },
+        { status: 500 },
+      );
+    }
+
+    const { error: eventsByOwnerIdDeleteError } = await supabaseAdmin
+      .from("events")
+      .delete()
+      .eq("owner_id", userId);
+
+    if (eventsByOwnerIdDeleteError) {
+      console.error(
+        "[DELETE /api/account/delete] events owner_id delete error:",
+        eventsByOwnerIdDeleteError,
+      );
+      return NextResponse.json(
+        { error: "登録イベントの削除に失敗しました。" },
+        { status: 500 },
+      );
+    }
+
+    const { error: eventsByCreatedByDeleteError } = await supabaseAdmin
+      .from("events")
+      .delete()
+      .eq("created_by", userId);
+
+    if (eventsByCreatedByDeleteError) {
+      console.error(
+        "[DELETE /api/account/delete] events created_by delete error:",
+        eventsByCreatedByDeleteError,
       );
       return NextResponse.json(
         { error: "登録イベントの削除に失敗しました。" },
