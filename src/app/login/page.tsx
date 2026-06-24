@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+const signUpMode = process.env.NEXT_PUBLIC_SIGNUP_MODE ?? "invite";
+const isPublicSignUpEnabled = signUpMode === "public";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -138,12 +141,14 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-6 text-center text-sm text-gray-600">
-            アカウントをお持ちでない方は
+            {isPublicSignUpEnabled
+              ? "アカウントをお持ちでない方は"
+              : "初めて利用する方は"}
             <Link
               href="/signup"
               className="ml-1 font-medium text-blue-600 underline-offset-4 hover:underline"
             >
-              新規登録
+              {isPublicSignUpEnabled ? "新規登録" : "新規登録について"}
             </Link>
           </p>
           <p className="mt-4 text-center text-xs text-gray-500">
