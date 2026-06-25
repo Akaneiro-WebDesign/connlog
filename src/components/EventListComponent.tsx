@@ -257,22 +257,25 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
             key={eventKey}
             className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 lg:p-10 mb-4 md:mb-6 lg:mb-9 shadow-sm hover:shadow-md transition-shadow"
           >
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-              <div className="flex-1">
-                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 lg:gap-13 mb-2">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <span className="text-sm md:text-base text-gray-500">
-                      {event.date}
-                    </span>
-                    <span className="text-sm md:text-base text-gray-500">
-                      {event.time}
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="flex min-w-0">
+                  <div className="inline-flex max-w-full items-center gap-1.5 rounded-sm bg-orange-400 px-2.5 py-1 text-xs font-medium text-gray-700 md:text-sm mb-3">
+                    <UserRound className="h-3.5 w-3.5 flex-shrink-0 text-white" />
+                    <span className="min-w-0 truncate text-white">
+                      {event.organizer || "主催者未定"}
                     </span>
                   </div>
-                  <div className="flex items-center">
-                    <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                    <span className="px-2 py-0.5 text-gray-700 text-sm md:text-base rounded truncate">
-                      {event.organizer || "主催者未定"}
+                </div>
+
+                <div className="mb-3 space-y-2">
+                  <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+                    <CalendarDays className="w-4 h-4 flex-shrink-0 text-gray-500" />
+                    <span className="text-sm text-gray-500 md:text-base">
+                      {event.date}
+                    </span>
+                    <span className="text-sm text-gray-500 md:text-base">
+                      {event.time}
                     </span>
                   </div>
                 </div>
@@ -281,7 +284,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                   href={event.event_url || event.url || "https://example.com"}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-semibold text-gray-900 mb-3 md:mb-4 mt-2 md:mt-4 text-lg md:text-xl hover:text-red-600 cursor-pointer block line-clamp-2"
+                  className="mb-3 block cursor-pointer line-clamp-2 text-lg font-semibold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-4 md:text-2xl"
                 >
                   {event.title}
                 </a>
@@ -323,7 +326,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                 </div>
               </div>
 
-              <div className="md:ml-4 md:self-start">
+              <div className="shrink-0 md:ml-4 md:self-start">
                 <button
                   onClick={() => {
                     setSelectedEvent(event);
@@ -424,6 +427,53 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
     </div>
   );
 
+  const renderModalEventHeader = () => {
+    if (!selectedEvent) return null;
+
+    return (
+      <div className="mb-6 pr-8">
+        <div className="min-w-0">
+          <div className="mb-4 flex min-w-0">
+            <div className="inline-flex max-w-full items-center gap-1.5 rounded-sm bg-orange-400 px-2.5 py-1 text-xs font-medium text-white md:text-sm">
+              <UserRound className="h-3.5 w-3.5 flex-shrink-0 text-white" />
+              <span className="min-w-0 truncate">
+                {selectedEvent.organizer || "主催者未定"}
+              </span>
+            </div>
+          </div>
+
+          <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4 flex-shrink-0 text-gray-500" />
+              <span className="text-sm text-gray-500 md:text-base">
+                {selectedEvent.date}
+              </span>
+            </div>
+            <span className="text-sm text-gray-500 md:text-base">
+              {selectedEvent.time}
+            </span>
+          </div>
+
+          <a
+            href={selectedEvent.event_url || selectedEvent.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mb-4 block cursor-pointer text-lg font-bold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-6 md:text-2xl"
+          >
+            {selectedEvent.title}
+          </a>
+
+          <div className="flex items-center gap-2">
+            <MapPinned className="h-4 w-4 flex-shrink-0 text-gray-500" />
+            <span className="text-sm text-gray-500 md:text-base">
+              {selectedEvent.place || selectedEvent.venue}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       {saveFeedback && (
@@ -504,41 +554,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
             <div className="p-4 md:p-8 lg:p-30">
               {modalMode === "view" ? (
                 <>
-                  <div className="flex justify-between items-start mb-4 pr-8">
-                    <div className="flex-1">
-                      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 lg:gap-13 mb-4 md:mb-6">
-                        <div className="flex items-center gap-2">
-                          <CalendarDays className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                          <span className="text-sm md:text-base text-gray-500">
-                            {selectedEvent.date}
-                          </span>
-                          <span className="text-sm md:text-base text-gray-500">
-                            {selectedEvent.time}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                          <span className="text-gray-700 text-sm md:text-base">
-                            {selectedEvent.organizer || "主催者未定"}
-                          </span>
-                        </div>
-                      </div>
-                      <a
-                        href={selectedEvent.event_url || selectedEvent.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 mt-2 md:mt-4 hover:text-red-600 cursor-pointer block"
-                      >
-                        {selectedEvent.title}
-                      </a>
-                      <div className="flex items-center gap-2 mb-3">
-                        <MapPinned className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                        <span className="text-sm md:text-base text-gray-500">
-                          {selectedEvent.place || selectedEvent.venue}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  {renderModalEventHeader()}
 
                   <p className="text-sm md:text-base text-gray-600 mb-6 md:mb-8 whitespace-pre-wrap">
                     {sanitizeEventDescription(
@@ -609,52 +625,16 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                 </>
               ) : (
                 <>
-                  <div className="flex justify-between items-start mb-4 pr-8">
-                    <div className="flex-1">
-                      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 lg:gap-13 mb-4 md:mb-6">
-                        <div className="flex items-center gap-2">
-                          <CalendarDays className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                          <span className="text-sm md:text-base text-gray-500">
-                            {selectedEvent.date}
-                          </span>
-                          <span className="text-sm md:text-base text-gray-500">
-                            {selectedEvent.time}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                          <span className="text-gray-700 text-sm md:text-base">
-                            {selectedEvent.organizer || "主催者未定"}
-                          </span>
-                        </div>
-                      </div>
+                  {renderModalEventHeader()}
 
-                      <a
-                        href={selectedEvent.event_url || selectedEvent.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 mt-2 md:mt-4 hover:text-red-600 cursor-pointer block"
-                      >
-                        {selectedEvent.title}
-                      </a>
-
-                      <div className="flex items-center gap-2 mb-4 md:mb-6">
-                        <MapPinned className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                        <span className="text-sm md:text-base text-gray-500">
-                          {selectedEvent.place || selectedEvent.venue}
-                        </span>
-                      </div>
-
-                      <p className="text-sm md:text-base text-gray-600 mb-6 md:mb-8 whitespace-pre-wrap">
-                        {sanitizeEventDescription(
-                          selectedEvent.event_description ||
-                            selectedEvent.description ||
-                            "",
-                          150,
-                        )}
-                      </p>
-                    </div>
-                  </div>
+                  <p className="text-sm md:text-base text-gray-600 mb-6 md:mb-8 whitespace-pre-wrap">
+                    {sanitizeEventDescription(
+                      selectedEvent.event_description ||
+                        selectedEvent.description ||
+                        "",
+                      150,
+                    )}
+                  </p>
 
                   <div className="mb-6">
                     <div className="flex items-center gap-2 mb-4">
