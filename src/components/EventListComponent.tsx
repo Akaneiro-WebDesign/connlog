@@ -259,15 +259,6 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
           >
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div className="min-w-0 flex-1">
-                <div className="flex min-w-0">
-                  <div className="inline-flex max-w-full items-center gap-1.5 rounded-sm bg-orange-400 px-2.5 py-1 text-xs font-medium text-gray-700 md:text-sm mb-3">
-                    <UserRound className="h-3.5 w-3.5 flex-shrink-0 text-white" />
-                    <span className="min-w-0 truncate text-white">
-                      {event.organizer || "主催者未定"}
-                    </span>
-                  </div>
-                </div>
-
                 <div className="mb-3 space-y-2">
                   <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
                     <CalendarDays className="w-4 h-4 flex-shrink-0 text-gray-500" />
@@ -276,6 +267,15 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                     </span>
                     <span className="text-sm text-gray-500 md:text-base">
                       {event.time}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex min-w-0">
+                  <div className="mb-3 inline-flex max-w-full items-center gap-1.5 rounded-sm bg-orange-400 px-2.5 py-1 text-xs font-medium text-white md:text-sm">
+                    <UserRound className="h-3.5 w-3.5 flex-shrink-0 text-white" />
+                    <span className="min-w-0 truncate">
+                      {event.organizer || "主催者未定"}
                     </span>
                   </div>
                 </div>
@@ -433,15 +433,6 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
     return (
       <div className="mb-6 pr-8">
         <div className="min-w-0">
-          <div className="mb-4 flex min-w-0">
-            <div className="inline-flex max-w-full items-center gap-1.5 rounded-sm bg-orange-400 px-2.5 py-1 text-xs font-medium text-white md:text-sm">
-              <UserRound className="h-3.5 w-3.5 flex-shrink-0 text-white" />
-              <span className="min-w-0 truncate">
-                {selectedEvent.organizer || "主催者未定"}
-              </span>
-            </div>
-          </div>
-
           <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
             <div className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4 flex-shrink-0 text-gray-500" />
@@ -452,6 +443,15 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
             <span className="text-sm text-gray-500 md:text-base">
               {selectedEvent.time}
             </span>
+          </div>
+
+          <div className="mb-3 flex min-w-0">
+            <div className="inline-flex max-w-full items-center gap-1.5 rounded-sm bg-orange-400 px-2.5 py-1 text-xs font-medium text-white md:text-sm">
+              <UserRound className="h-3.5 w-3.5 flex-shrink-0 text-white" />
+              <span className="min-w-0 truncate">
+                {selectedEvent.organizer || "主催者未定"}
+              </span>
+            </div>
           </div>
 
           <a
