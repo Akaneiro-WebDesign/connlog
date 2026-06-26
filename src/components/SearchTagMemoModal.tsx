@@ -127,17 +127,23 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
 
                 <div className="p-4 md:p-8 lg:p-30">
                     {/* イベント情報ヘッダー */}
-                    <div className="flex justify-between items-start mb-4 pr-8">
-                        <div className="flex-1">
-                            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 lg:gap-13 mb-4 md:mb-6">
+                    <div className="mb-6 pr-8">
+                        <div className="min-w-0">
+                            <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
                                 <div className="flex items-center gap-2">
-                                    <CalendarDays className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                    <span className="text-sm md:text-base text-gray-500">{formattedDate.date}</span>
-                                    <span className="text-sm md:text-base text-gray-500">{formattedDate.time}</span>
+                                    <CalendarDays className="h-4 w-4 flex-shrink-0 text-gray-500" />
+                                    <span className="text-sm text-gray-500 md:text-base">
+                                        {formattedDate.date}
+                                    </span>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                    <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                    <span className="text-gray-700 text-sm md:text-base">
+                                <span className="text-sm text-gray-500 md:text-base">
+                                    {formattedDate.time}
+                                </span>
+                            </div>
+                            <div className="mb-3 flex min-w-0">
+                                <div className="inline-flex max-w-full items-center gap-1.5 rounded-sm bg-orange-400 px-2.5 py-1 text-xs font-medium text-white md:text-sm">
+                                    <UserRound className="h-3.5 w-3.5 flex-shrink-0 text-white" />
+                                    <span className="min-w-0 truncate">
                                         {
                                             event.group?.title ||
                                             event.organizer ||
@@ -153,14 +159,14 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                                 href={event.event_url || event.url || '#'}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 mt-2 md:mt-4 hover:text-red-600 cursor-pointer block"
+                                className="mb-4 block cursor-pointer text-lg font-bold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-6 md:text-2xl"
                             >
                                 {event.title || 'タイトル不明'}
                             </a>
 
-                            <div className="flex items-center gap-2 mb-3">
-                                <MapPinned className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                <span className="text-sm md:text-base text-gray-500">
+                            <div className="flex items-center gap-2">
+                                <MapPinned className="h-4 w-4 flex-shrink-0 text-gray-500" />
+                                <span className="text-sm text-gray-500 md:text-base">
                                     {event.place || event.venue || event.address || '会場未定'}
                                 </span>
                             </div>

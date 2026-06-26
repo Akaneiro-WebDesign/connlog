@@ -339,7 +339,7 @@ export const EventSearchForm = () => {
                 </form>
             </div>
 
-            {/* 検索結果表示（EventListComponent統一スタイル） */}
+            {/* 検索結果表示 */}
             {events.length > 0 && (
                 <div className="mt-15">
                     <div className="flex items-center gap-2 mb-4 md:mb-6">
@@ -364,34 +364,40 @@ export const EventSearchForm = () => {
 
                             return (
                                 <div key={eventId || index} className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 lg:p-10 mb-4 md:mb-6 lg:mb-9 shadow-sm hover:shadow-md transition-shadow">
-                                    <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                                        <div className="flex-1">
-                                            {/* 日時・主催者情報 */}
-                                            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 lg:gap-13 mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <CalendarDays className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                                    <span className="text-sm md:text-base text-gray-500">{date}</span>
-                                                    <span className="text-sm md:text-base text-gray-500">{time}</span>
+                                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                        <div className="min-w-0 flex-1">
+
+                                            {/* 日時情報 */}
+                                            <div className="mb-3 space-y-2">
+                                                <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+                                                    <CalendarDays className="w-4 h-4 flex-shrink-0 text-gray-500" />
+                                                    <span className="text-sm text-gray-500 md:text-base">{date}</span>
+                                                    <span className="text-sm text-gray-500 md:text-base">{time}</span>
                                                 </div>
-                                                <div className="flex items-center">
-                                                    <UserRound className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                                                    <span className="px-2 py-0.5 text-gray-700 text-sm md:text-base rounded truncate">
+                                            </div>
+
+                                            {/* 主催者情報 */}
+                                            <div className="flex min-w-0">
+                                                <div className="mb-3 inline-flex max-w-full items-center gap-1.5 rounded-sm bg-orange-400 px-2.5 py-1 text-xs font-medium text-white md:text-sm">
+                                                    <UserRound className="h-3.5 w-3.5 flex-shrink-0 text-white" />
+                                                    <span className="min-w-0 truncate">
                                                         {
                                                             event.group?.title ||
                                                             event.organizer ||
                                                             event.owner_text ||
                                                             event.owner_display_name ||
-                                                            '主催者不明'
+                                                            '主催者未定'
                                                         }
                                                     </span>
                                                 </div>
                                             </div>
+
                                             {/* タイトル */}
                                             <a
                                                 href={event.event_url || event.url || '#'}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="font-semibold text-gray-900 mb-3 md:mb-4 mt-2 md:mt-4 text-lg md:text-xl hover:text-red-600 cursor-pointer block line-clamp-2"
+                                                className="mb-3 block cursor-pointer line-clamp-2 text-lg font-semibold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-4 md:text-2xl"
                                             >
                                                 {event.title || 'タイトル不明'}
                                             </a>
@@ -400,7 +406,7 @@ export const EventSearchForm = () => {
                                             <div className="flex items-center gap-2 mb-3 md:mb-5">
                                                 <MapPinned className="w-4 h-4 text-gray-500 flex-shrink-0" />
                                                 <span className="text-sm md:text-base text-gray-500 truncate">
-                                                    {event.place || event.venue || event.address || '会場不明'}
+                                                    {event.place || event.venue || event.address || '会場未定'}
                                                 </span>
                                             </div>
 
@@ -413,7 +419,7 @@ export const EventSearchForm = () => {
                                         {/* アクションボタン（EventListComponentスタイル） */}
                                         <button
                                             onClick={() => handleTagMemoClick(event)}
-                                            className={`w-full md:w-auto p-2 rounded hover:transition-colors cursor-pointer inline-flex items-center justify-center ${isRegistered
+                                            className={`w-full shrink-0 md:w-auto p-2 rounded hover:transition-colors cursor-pointer inline-flex items-center justify-center ${isRegistered
                                                 ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
                                                 : 'bg-green-500 text-white hover:bg-green-600'
                                                 }`}
