@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useUser } from "@/components/UserProvider";
 import Sidebar from "@/components/Sidebar";
 import EventListComponent from "@/components/EventListComponent";
-import { CalendarClock, CheckCircle, Search, Meh } from "lucide-react";
+import { AlertCircle, CalendarClock, CheckCircle, Search, Meh, X } from "lucide-react";
 import { Header } from "@/components/Header";
 
 type RecentEvent = {
@@ -29,6 +29,12 @@ interface DashboardStats {
   recentEvents: RecentEvent[];
 }
 
+type ToastFeedback = {
+  title: string;
+  description: string;
+  variant: "success" | "error";
+};
+
 const isEmptyEventsStats = (data: DashboardStats) => {
   return data.recentEvents.length === 0;
 };
@@ -41,7 +47,7 @@ export default function EventsPage() {
   const [dataSource, setDataSource] = useState<"real" | "empty">("empty");
   const [apiError, setApiError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [toastFeedback, setToastFeedback] = useState<ToastFeedback | null>(null);
   const router = useRouter();
   const userId = user?.id;
 
@@ -105,6 +111,16 @@ export default function EventsPage() {
     loadDashboardData(userId);
   }, [mounted, isLoading, userId, loadDashboardData]);
 
+  useEffect(() => {
+    if (!toastFeedback) return;
+
+    const timer = window.setTimeout(() => {
+      setToastFeedback(null);
+    }, 6000);
+
+    return () => window.clearTimeout(timer);
+  }, [toastFeedback]);
+
   const confirmDeleteEvent = async (event: RecentEvent) => {
     try {
       setIsDeleting(true);
@@ -144,7 +160,12 @@ export default function EventsPage() {
           setDataSource("empty");
         }
       }
-      setSuccessMessage(`「${event.title}」を削除しました。`);
+
+      setToastFeedback({
+        title: "イベントを削除しました",
+        description: event.title || "タイトル不明",
+        variant: "success",
+    });
 
       if (userId) {
         await loadDashboardData(userId);
@@ -155,7 +176,11 @@ export default function EventsPage() {
         error instanceof Error
           ? error.message
           : "削除処理でエラーが発生しました。";
-      setSuccessMessage(`エラー: ${errorMessage}`);
+      setToastFeedback({
+        title: "削除に失敗しました",
+        description: errorMessage,
+        variant: "error",
+      });
     } finally {
       setIsDeleting(false);
     }
@@ -184,15 +209,49 @@ export default function EventsPage() {
             </h1>
           </div>
 
-          {successMessage && (
-            <div className="mb-4 md:mb-6">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-green-800 text-sm whitespace-pre-line">
-                    {successMessage}
-                  </div>
+          {toastFeedback && (
+            <div
+              role="status"
+              aria-live="polite"
+              className={`fixed left-4 right-4 bottom-4 z-50 rounded-xl border bg-white px-4 py-3 text-sm shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-6 md:w-[420px] ${
+                toastFeedback.variant === "error"
+                  ? "border-red-200"
+                  : "border-gray-200"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  aria-hidden="true"
+                  className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                    toastFeedback.variant === "error"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  {toastFeedback.variant === "error" ? (
+                    <AlertCircle className="h-4 w-4" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4" />
+                  )}
                 </div>
+
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium leading-5 text-gray-900">
+                    {toastFeedback.title}
+                  </p>
+                  <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-gray-500">
+                    {toastFeedback.description}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setToastFeedback(null)}
+                  aria-label="通知を閉じる"
+                  className="-mr-1 -mt-1 shrink-0 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             </div>
           )}
