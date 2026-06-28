@@ -49,6 +49,13 @@ type ConnpassEvent = {
 type SaveFeedback = {
     title: string
     description: string
+    variant?: 'success' | 'error'
+}
+
+type SearchFeedback = {
+    title: string
+    description?: string
+    variant: 'error' | 'info'
 }
 
 /**
@@ -68,6 +75,7 @@ export const EventSearchForm = () => {
     const [events, setEvents] = useState<ConnpassEvent[]>([])
     const [isLoading, setIsLoading] = useState(false)
     const [saveFeedback, setSaveFeedback] = useState<SaveFeedback | null>(null)
+    const [searchFeedback, setSearchFeedback] = useState<SearchFeedback | null>(null)
 
     // ページネーション用の状態管理
     const [currentPage, setCurrentPage] = useState(1)
@@ -107,39 +115,52 @@ export const EventSearchForm = () => {
     }
 
     // 検索実行関数
+    // 検索実行関数
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!searchInput.trim()) {
-            alert('検索条件を入力してください')
+        const trimmedInput = searchInput.trim()
+
+        if (!trimmedInput) {
+            setSearchFeedback({
+                title: '検索条件を入力してください',
+                variant: 'error',
+            })
             return
         }
 
         setIsLoading(true)
         setCurrentPage(1)
         setSaveFeedback(null)
+        setSearchFeedback(null)
 
         try {
             let searchResults: ConnpassEvent[] = []
 
             if (searchMode === 'event') {
-                const eventId = extractEventId(searchInput.trim())
+                const eventId = extractEventId(trimmedInput)
+
                 if (eventId) {
                     const event = await fetchConnpassEvent(eventId)
+
                     if (event) {
                         searchResults = [event]
                         setTotalResults(1)
                         setHasMore(false)
                     }
                 } else {
-                    alert('有効なイベントIDまたはURLを入力してください')
+                    setSearchFeedback({
+                        title: '有効なイベントIDまたはURLを入力してください',
+                        description: 'connpassのイベントURL、またはイベントIDを入力してください。',
+                        variant: 'error',
+                    })
                     setIsLoading(false)
                     return
                 }
             } else {
                 try {
                     // ページング対応でAPIを呼び出し
-                    const result = await fetchUserEvents(searchInput.trim(), 0, ITEMS_PER_PAGE)
+                    const result = await fetchUserEvents(trimmedInput, 0, ITEMS_PER_PAGE)
                     searchResults = result.events || []
 
                     // ページング情報を設定
@@ -147,11 +168,8 @@ export const EventSearchForm = () => {
                     const fallbackTotal = searchResults.length
                     setTotalResults(apiTotal || fallbackTotal)
                     setHasMore(result.pagination?.hasMore || false)
-
                 } catch {
-                    searchResults = []
-                    setTotalResults(0)
-                    setHasMore(false)
+                    throw new Error('ユーザーイベントの検索に失敗しました')
                 }
             }
 
@@ -159,24 +177,40 @@ export const EventSearchForm = () => {
 
             if (searchResults.length === 0) {
                 if (searchMode === 'nickname') {
-                    alert(`ユーザー "${searchInput.trim()}" のイベントが見つかりませんでした。\n- ユーザーが存在しない\n- 公開イベントがない\n可能性があります。`)
+                    setSearchFeedback({
+                        title: `ユーザー "${trimmedInput}" のイベントが見つかりませんでした`,
+                        description: 'ユーザーが存在しない、または公開イベントがない可能性があります。',
+                        variant: 'info',
+                    })
                 } else {
-                    alert('イベントが見つかりませんでした')
+                    setSearchFeedback({
+                        title: 'イベントが見つかりませんでした',
+                        description: 'イベントIDまたはURLを確認してください。',
+                        variant: 'info',
+                    })
                 }
             }
         } catch {
-            alert('検索に失敗しました。もう一度お試しください。')
+            setEvents([])
+            setTotalResults(0)
+            setHasMore(false)
+            setSearchFeedback({
+                title: '検索に失敗しました',
+                description: '時間をおいてもう一度お試しください。',
+                variant: 'error',
+            })
         } finally {
             setIsLoading(false)
         }
     }
-
+    
     // ページ変更処理
     const handlePageChange = async (newPage: number) => {
         if (searchMode !== 'nickname') return
 
         setIsLoading(true)
         setCurrentPage(newPage)
+        setSearchFeedback(null)
 
         try {
             const start = (newPage - 1) * ITEMS_PER_PAGE
@@ -185,7 +219,11 @@ export const EventSearchForm = () => {
             setEvents(result.events || [])
             setHasMore(result.pagination?.hasMore || false)
         } catch {
-            alert('ページの読み込みに失敗しました')
+            setSearchFeedback({
+                title: 'ページの読み込みに失敗しました',
+                description: '時間をおいてもう一度お試しください。',
+                variant: 'error',
+            })
         } finally {
             setIsLoading(false)
         }
@@ -223,12 +261,17 @@ export const EventSearchForm = () => {
             setSaveFeedback({
                 title: successMessage,
                 description: selectedEvent.title || 'タイトル不明',
+                variant: 'success',
             })
 
             handleModalClose()
         } catch (error) {
             console.error('保存に失敗しました:', error)
-            alert('保存に失敗しました。\n\n時間をおいてもう一度お試しください。')
+            setSaveFeedback({
+                title: '保存に失敗しました',
+                description: '時間をおいてもう一度お試しください。',
+                variant: 'error',
+            })
         }
     }
 
@@ -248,10 +291,18 @@ export const EventSearchForm = () => {
             >
                 <div className="flex items-start gap-3">
                     <div
-                    aria-hidden="true"
-                    className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700"
+                        aria-hidden="true"
+                        className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                            saveFeedback.variant === 'error'
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-green-100 text-green-700'
+                        }`}
                     >
-                    <Check className="h-4 w-4" />
+                        {saveFeedback.variant === 'error' ? (
+                            <X className="h-4 w-4" />
+                        ) : (
+                            <Check className="h-4 w-4" />
+                        )}
                     </div>
                     <div className="min-w-0 flex-1">
                         <p className="font-medium leading-5 text-gray-900">
@@ -336,6 +387,37 @@ export const EventSearchForm = () => {
                             </button>
                         </div>
                     </div>
+
+                    {searchFeedback && (
+                        <div
+                            role={searchFeedback.variant === 'error' ? 'alert' : 'status'}
+                            aria-live={searchFeedback.variant === 'error' ? 'assertive' : 'polite'}
+                            className={`rounded-lg border px-4 py-3 text-sm ${
+                                searchFeedback.variant === 'error'
+                                    ? 'border-red-200 bg-red-50 text-red-800'
+                                    : 'border-blue-200 bg-blue-50 text-blue-800'
+                            }`}
+                        >
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <p className="font-medium">{searchFeedback.title}</p>
+                                    {searchFeedback.description && (
+                                        <p className="mt-1 text-xs leading-5 opacity-90">
+                                            {searchFeedback.description}
+                                        </p>
+                                    )}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchFeedback(null)}
+                                    aria-label="メッセージを閉じる"
+                                    className="-mr-1 -mt-1 shrink-0 rounded-full p-1 opacity-70 hover:bg-white/60 hover:opacity-100"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </form>
             </div>
 
