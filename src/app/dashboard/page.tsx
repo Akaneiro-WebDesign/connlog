@@ -11,7 +11,7 @@ import {
   AlertCircle,
   CheckCircle,
   LayoutDashboard,
-  Meh,
+  Inbox,
   Search,
   X,
 } from "lucide-react";
@@ -349,7 +349,7 @@ export default function DashboardPage() {
           ) : stats && dataSource === "empty" ? (
             <div className="bg-white rounded-lg p-6 md:p-10 shadow-sm text-center">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-50">
-                <Meh className="h-6 w-6 text-orange-500" />
+                <Inbox className="h-6 w-6 text-orange-500" />
               </div>
               <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
                 まだ学習ログがありません

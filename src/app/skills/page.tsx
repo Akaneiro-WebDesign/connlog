@@ -6,7 +6,7 @@ import { useUser } from "@/components/UserProvider";
 import Sidebar from "@/components/Sidebar";
 import TagChartComponent from "@/components/TagChartComponent";
 import WeeklyChartComponent from "@/components/WeeklyChartComponent";
-import { ChartPie, Search } from "lucide-react";
+import { ChartPie, Inbox, Search } from "lucide-react";
 import { Header } from "@/components/Header";
 
 interface DashboardStats {
@@ -169,7 +169,7 @@ export default function SkillsPage() {
           ) : stats && dataSource === "empty" ? (
             <div className="bg-white rounded-lg p-6 md:p-10 shadow-sm text-center">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-50">
-                <ChartPie className="h-6 w-6 text-orange-500" />
+                <Inbox className="h-6 w-6 text-orange-500" />
               </div>
               <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-3">
                 スキル分析はまだありません

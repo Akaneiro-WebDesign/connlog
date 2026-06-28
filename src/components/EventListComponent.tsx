@@ -18,6 +18,7 @@ import {
   Save,
   RotateCcw,
   Check,
+  Inbox,
 } from "lucide-react";
 
 // Event型定義
@@ -208,8 +209,13 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
   // 空状態の処理
   if (events.length === 0) {
     const emptyContent = (
-      <div className="text-center py-8 text-gray-500">
-        まだイベントが登録されていません。
+      <div className="text-center py-8">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-50">
+            <Inbox className="h-6 w-6 text-orange-500" />
+          </div>
+            <p className="text-sm md:text-base text-gray-600">
+              まだイベントが登録されていません。
+            </p>
       </div>
     );
 
