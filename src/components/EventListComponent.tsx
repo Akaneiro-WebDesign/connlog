@@ -291,14 +291,20 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                   </div>
                 </div>
 
-                <a
-                  href={event.event_url || event.url || "https://example.com"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mb-3 block cursor-pointer line-clamp-2 text-lg font-semibold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-4 md:text-2xl"
-                >
-                  {event.title}
-                </a>
+                {event.event_url || event.url ? (
+                  <a
+                    href={event.event_url || event.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mb-3 block cursor-pointer line-clamp-2 text-lg font-semibold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-4 md:text-2xl"
+                  >
+                    {event.title}
+                  </a>
+                ) : (
+                  <h3 className="mb-3 line-clamp-2 text-lg font-semibold text-gray-900 md:mb-4 md:text-2xl">
+                    {event.title}
+                  </h3>
+                )}
 
                 <div className="flex items-center gap-2 mb-3 md:mb-5">
                   <MapPinned className="w-4 h-4 text-gray-500 flex-shrink-0" />
@@ -465,14 +471,20 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
             </div>
           </div>
 
-          <a
-            href={selectedEvent.event_url || selectedEvent.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mb-4 block cursor-pointer text-lg font-bold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-6 md:text-2xl"
-          >
-            {selectedEvent.title}
-          </a>
+          {selectedEvent.event_url || selectedEvent.url ? (
+            <a
+              href={selectedEvent.event_url || selectedEvent.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mb-4 block cursor-pointer text-lg font-bold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-6 md:text-2xl"
+            >
+              {selectedEvent.title}
+            </a>
+            ) : (
+              <h2 className="mb-4 text-lg font-bold text-gray-900 md:mb-6 md:text-2xl">
+                {selectedEvent.title}
+              </h2>
+          )}
 
           <div className="flex items-center gap-2">
             <MapPinned className="h-4 w-4 flex-shrink-0 text-gray-500" />
