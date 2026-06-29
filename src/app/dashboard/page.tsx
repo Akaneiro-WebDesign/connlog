@@ -78,17 +78,10 @@ export default function DashboardPage() {
 
   const userId = user?.id;
 
-  const loadDashboardData = useCallback(async (targetUserId: string) => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       setApiError(null);
-
-      if (process.env.NODE_ENV === "development") {
-        console.log("[dashboard] loadDashboardData called:", {
-          userId: targetUserId,
-          time: new Date().toISOString(),
-        });
-      }
 
       const response = await fetch("/api/dashboard-data", {
         method: "POST",
@@ -135,7 +128,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!mounted || isLoading || !userId) return;
-    loadDashboardData(userId);
+    loadDashboardData();
   }, [mounted, isLoading, userId, loadDashboardData]);
 
   useEffect(() => {
@@ -210,7 +203,7 @@ export default function DashboardPage() {
       });
 
       if (userId) {
-        await loadDashboardData(userId);
+        await loadDashboardData();
       }
     } catch (error) {
       console.error("削除エラー:", error);

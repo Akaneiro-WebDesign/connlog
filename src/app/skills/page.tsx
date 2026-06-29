@@ -41,16 +41,10 @@ export default function SkillsPage() {
 
   const userId = user?.id;
 
-  const loadDashboardData = useCallback(async (targetUserId: string) => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       setApiError(null);
-      if (process.env.NODE_ENV === "development") {
-        console.log("[skills] loadDashboardData called:", {
-          userId: targetUserId,
-          time: new Date().toISOString(),
-        });
-      }
 
       const response = await fetch("/api/dashboard-data", {
         method: "POST",
@@ -101,7 +95,7 @@ export default function SkillsPage() {
 
   useEffect(() => {
     if (!mounted || isLoading || !userId) return;
-    loadDashboardData(userId);
+    loadDashboardData();
   }, [mounted, isLoading, userId, loadDashboardData]);
 
   if (!mounted) return null;
