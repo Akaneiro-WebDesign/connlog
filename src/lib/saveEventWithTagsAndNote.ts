@@ -102,7 +102,7 @@ export const saveEventWithTagsAndNote = async (
     try {
         const eventData = convertConnpassToDatabase(connpassEvent, userId)
 
-        // 既存データをチェック	
+        // 既存データをチェック
         const { data: existingEvent, error: selectError } = await supabase
             .from('events')
             .select('id')
@@ -118,7 +118,7 @@ export const saveEventWithTagsAndNote = async (
 
         let savedEvent
         let isUpdate = false
-        
+
         if (existingEvent) {
             isUpdate = true
             // 既存データを更新
@@ -185,27 +185,27 @@ export const saveEventWithTagsAndNote = async (
             }
         }
 
-        // メモを保存
-        if (tagsAndNote.note && tagsAndNote.note.trim()) {
-            // 既存メモを削除
-            const { error: deleteNoteError } = await supabase
-                .from('notes')
-                .delete()
-                .eq('event_id', eventIdString)
-                .eq('user_id', userId)
+        // 既存メモを削除
+        const { error: deleteNoteError } = await supabase
+            .from('notes')
+            .delete()
+            .eq('event_id', eventIdString)
+            .eq('user_id', userId)
 
-                if (deleteNoteError) {
-                    console.error('既存メモ削除エラー:', deleteNoteError)
-                    throw new Error(`既存メモの削除に失敗しました:
-                        ${deleteNoteError.message}`)
-                }
+        if (deleteNoteError) {
+            console.error('既存メモ削除エラー:', deleteNoteError)
+            throw new Error(`既存メモの削除に失敗しました: ${deleteNoteError.message}`)
+        }
 
-            // 新しいメモを挿入
+        const noteText = tagsAndNote.note.trim()
+
+        // 新しいメモを保存
+        if (noteText) {
             const { error: insertNoteError } = await supabase
                 .from('notes')
                 .insert({
                     event_id: eventIdString,
-                    note: tagsAndNote.note.trim(),
+                    note: noteText,
                     user_id: userId,
                 })
 
@@ -265,7 +265,7 @@ export const getUserRegisteredEventIds = async (): Promise<Set<number>> => {
                 if (id) {
                     return parseInt(String(id), 10);
                 }
-                
+
                 return null;
             })
             .filter((id): id is number => id !== null && !isNaN(id));
