@@ -48,27 +48,34 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
     const [tagInput, setTagInput] = useState('')
     const [note, setNote] = useState('')
     const [isLoading, setIsLoading] = useState(false)
+    const [isTagComposing, setIsTagComposing] = useState(false)
 
     //　タグ追加処理
     const addTag = () => {
         const trimmedTag = tagInput.trim()
-        if (trimmedTag && !tags.includes(trimmedTag)) {
+
+        if (!trimmedTag) return
+
+        if (!tags.includes(trimmedTag)) {
             setTags(prev => [...prev, trimmedTag])
-            setTagInput('')
         }
+
+        setTagInput('')
     }
 
     // Enterキーでタグ追加
-    const handleTagInputKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            e.preventDefault()
-            addTag()
-        }
+    const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== 'Enter') return
+
+        if (isTagComposing || e.nativeEvent.isComposing) return
+
+        e.preventDefault()
+        addTag()
     }
 
     // タグ削除処理
     const removeTag = (tagToRemove: string) => {
-        setTags(prev => prev.filter(tag => tag!== tagToRemove))
+        setTags(prev => prev.filter(tag => tag !== tagToRemove))
     }
 
     // 保存処理
@@ -213,6 +220,8 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                                 value={tagInput}
                                 onChange={(e) => setTagInput(e.target.value)}
                                 onKeyDown={handleTagInputKeyDown}
+                                onCompositionStart={() => setIsTagComposing(true)}
+                                onCompositionEnd={() => setIsTagComposing(false)}
                                 placeholder="例：React, Next.js, TypeScript"
                                 className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />

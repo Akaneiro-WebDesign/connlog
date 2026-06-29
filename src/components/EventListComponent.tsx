@@ -82,6 +82,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
 
   const [editTags, setEditTags] = useState<string[]>([]);
   const [editTagInput, setEditTagInput] = useState("");
+  const [isEditTagComposing, setIsEditTagComposing] = useState(false);
   const [editNote, setEditNote] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [saveFeedback, setSaveFeedback] = useState<SaveFeedback | null>(null);
@@ -172,9 +173,11 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
     const trimmedTag = editTagInput.trim();
 
     if (!trimmedTag) return;
-    if (editTags.includes(trimmedTag)) return;
 
-    setEditTags([...editTags, trimmedTag]);
+    if (!editTags.includes(trimmedTag)) {
+      setEditTags([...editTags, trimmedTag]);
+    }
+
     setEditTagInput("");
   };
 
@@ -187,10 +190,12 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
   };
 
   const handleEditTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    if (e.key !== "Enter") return;
+
+    if (isEditTagComposing || e.nativeEvent.isComposing) return;
+
       e.preventDefault();
       handleAddEditTag();
-    }
   };
 
   const confirmDeleteEvent = async () => {
@@ -674,6 +679,8 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                         value={editTagInput}
                         onChange={(e) => setEditTagInput(e.target.value)}
                         onKeyDown={handleEditTagKeyDown}
+                        onCompositionStart={() => setIsEditTagComposing(true)}
+                        onCompositionEnd={() => setIsEditTagComposing(false)}
                         className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm md:text-base"
                         placeholder="例：React, Next.js, TypeScript"
                       />
