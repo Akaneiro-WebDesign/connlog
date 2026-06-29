@@ -57,11 +57,8 @@ const getEventKey = (eventId: EventId | null | undefined) => {
 };
 
 export async function POST() {
-  const totalStart = performance.now();
 
   try {
-    console.log("[dashboard-data] start");
-
     const supabase = await createSupabaseServerClient();
 
     const {
@@ -77,8 +74,6 @@ export async function POST() {
     const userId = user.id;
 
     // 1. events / notes / tags を取得
-    const dbStart = performance.now();
-
     const [eventsResult, notesResult, tagsResult] = await Promise.all([
       supabase
         .from("events")
@@ -98,17 +93,6 @@ export async function POST() {
     const { data: events, error: eventsError } = eventsResult;
     const { data: notes, error: notesError } = notesResult;
     const { data: tags, error: tagsError } = tagsResult;
-
-    console.log(
-      "[dashboard-data] events + notes + tags fetch:",
-      Math.round(performance.now() - dbStart),
-      "ms",
-      {
-        eventsCount: events?.length ?? 0,
-        notesCount: notes?.length ?? 0,
-        tagsCount: tags?.length ?? 0,
-      },
-    );
 
     if (eventsError) {
       console.error("[dashboard-data] eventsError:", eventsError);
@@ -153,11 +137,6 @@ export async function POST() {
       typedNotes.length === 0 &&
       typedTags.length === 0
     ) {
-      console.log(
-        "[dashboard-data] total:",
-        Math.round(performance.now() - totalStart),
-        "ms",
-      );
 
       return NextResponse.json({
         tagDistribution: [],
@@ -167,8 +146,6 @@ export async function POST() {
     }
 
     // 2. find/filter を減らすための Map を作る
-    const mapStart = performance.now();
-
     const eventMap = new Map<string, EventRow>();
 
     for (const event of typedEvents) {
@@ -206,12 +183,6 @@ export async function POST() {
       tagsMap.set(eventKey, currentTags);
     }
 
-    console.log(
-      "[dashboard-data] map build:",
-      Math.round(performance.now() - mapStart),
-      "ms",
-    );
-
     // 3. タグ別割合の計算
     const now = new Date();
 
@@ -248,8 +219,6 @@ export async function POST() {
       .sort((a, b) => b.value - a.value);
 
     // 4. 週ごとの参加数計算（イベント開催日ベース）
-    const weeklyStart = performance.now();
-
     const weeklyCount: Record<string, number> = {};
 
     // 過去5週間の初期化
@@ -288,15 +257,7 @@ export async function POST() {
       { week: "今週", count: weeklyCount[sortedWeekKeys[4]] || 0 },
     ];
 
-    console.log(
-      "[dashboard-data] weeklyParticipation build:",
-      Math.round(performance.now() - weeklyStart),
-      "ms",
-    );
-
     // 5. 最近のイベント履歴作成
-    const recentEventsStart = performance.now();
-
     const sortedEvents = [...typedEvents].sort((a, b) => {
       const aTime = a.started_at ? new Date(a.started_at).getTime() : 0;
       const bTime = b.started_at ? new Date(b.started_at).getTime() : 0;
@@ -334,32 +295,15 @@ export async function POST() {
       };
     });
 
-    console.log(
-      "[dashboard-data] recentEvents build:",
-      Math.round(performance.now() - recentEventsStart),
-      "ms",
-    );
-
     const dashboardStats = {
       tagDistribution,
       weeklyParticipation,
       recentEvents,
     };
 
-    console.log(
-      "[dashboard-data] total:",
-      Math.round(performance.now() - totalStart),
-      "ms",
-    );
-
     return NextResponse.json(dashboardStats);
   } catch (error) {
     console.error("dashboard-data unexpected error:", error);
-    console.log(
-      "[dashboard-data] total until error:",
-      Math.round(performance.now() - totalStart),
-      "ms",
-    );
     return NextResponse.json(
       {
         error: "Internal server error",
