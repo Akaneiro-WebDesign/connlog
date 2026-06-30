@@ -500,12 +500,14 @@ export const EventSearchForm = () => {
 
                                         {/* アクションボタン（EventListComponentスタイル） */}
                                         <button
+                                            type="button"
                                             onClick={() => handleTagMemoClick(event)}
-                                            className={`w-full shrink-0 md:w-auto p-2 rounded hover:transition-colors cursor-pointer inline-flex items-center justify-center ${isRegistered
-                                                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
-                                                : 'bg-green-500 text-white hover:bg-green-600'
+                                            disabled={isRegistered}
+                                            className={`w-full shrink-0 md:w-auto p-2 rounded hover:transition-colors inline-flex items-center justify-center disabled:cursor-not-allowed ${isRegistered
+                                                ? 'bg-gray-100 text-gray-700 border border-gray-300 opacity-70'
+                                                : 'bg-green-500 text-white hover:bg-green-600 cursor-pointer'
                                                 }`}
-                                            title={isRegistered ? "タグ・メモを編集" : "タグ編集 & メモ"}
+                                            title={isRegistered ? "登録済みです。編集はイベント履歴から行ってください" : "タグ編集 & メモ"}
                                         >
                                             {isRegistered ? (
                                                 <FileCheck className="w-4 md:w-5 h-4 md:h-5" />
