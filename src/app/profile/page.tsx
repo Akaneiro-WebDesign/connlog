@@ -27,11 +27,11 @@ type ProfileResponse = {
 
 const ProfilePageSkeleton = () => {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen overflow-x-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Header title="" />
-        <main className="flex-1 px-4 md:px-8 lg:px-28 py-6 md:py-8 lg:py-10">
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8 lg:px-28 lg:py-10">
           <div
             className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6 animate-pulse"
             role="status"
@@ -236,11 +236,11 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen overflow-x-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Header title="" />
-        <main className="flex-1 px-4 md:px-8 lg:px-28 py-6 md:py-8 lg:py-10">
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8 lg:px-28 lg:py-10">
           <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
             <UserCog className="w-6 h-6 md:w-8 md:h-8 text-gray-700" />
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
