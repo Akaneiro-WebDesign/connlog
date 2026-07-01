@@ -23,7 +23,7 @@ const TagChartComponent: React.FC<TagChartComponentProps> = ({
 }) => {
     if (!data || data.length === 0) {
         return (
-            <div className={`bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm ${className}`}>
+            <div className={`w-full min-w-0 overflow-hidden rounded-lg bg-white p-4 shadow-sm md:p-6 lg:p-12 ${className}`}>
                 <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-6 md:mb-10">{title}</h3>
                 <div className="text-center py-8 text-gray-500">
                     タグデータがありません
@@ -33,9 +33,9 @@ const TagChartComponent: React.FC<TagChartComponentProps> = ({
     }
 
     return (
-        <div className={`bg-white rounded-lg p-4 md:p-6 lg:p-12 shadow-sm ${className}`}>
+        <div className={`w-full min-w-0 overflow-hidden rounded-lg bg-white p-4 shadow-sm md:p-6 lg:p-12 ${className}`}>
             <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-6 md:mb-10">{title}</h3>
-            <div className="h-48 md:h-64">
+            <div className="h-48 min-w-0 md:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
