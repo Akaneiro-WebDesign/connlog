@@ -99,7 +99,7 @@ export default function Sidebar({ className }: SidebarProps) {
         {/* モバイル用ハンバーガーボタン */}
         <button
         onClick={toggleMobileMenu}
-        className="fixed left-4 top-4 z-50 flex items-center justify-center rounded-md p-1 transition-colors lg:hidden"
+        className="fixed left-4 top-4 z-[80] flex items-center justify-center rounded-md p-1 transition-colors lg:hidden"
         aria-label="メニューを開く"
         >
 
@@ -113,7 +113,7 @@ export default function Sidebar({ className }: SidebarProps) {
         {/* モバイル用オーバーレイ　 */}
         {isMobileMenuOpen && (
             <div
-            className="fixed inset-0 z-40 lg:hidden"
+            className="fixed inset-0 z-[60] lg:hidden"
             style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
             onClick={() => setIsMobileMenuOpen(false)}
             />
@@ -125,7 +125,7 @@ export default function Sidebar({ className }: SidebarProps) {
         //モバイル用のスタイル
         'lg:relative lg:w-64 lg:translate-x-0 xl:w-77',
         // モバイルでの表示制御
-        'fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out',
+        'fixed inset-y-0 left-0 z-[70] w-64 transform transition-transform duration-300 ease-in-out',
         isMobileMenuOpen
             ?'translate-x-0'
             : '-translate-x-full lg:translate-x-0',
@@ -157,7 +157,7 @@ export default function Sidebar({ className }: SidebarProps) {
                             <span className="truncate text-sm lg:text-lg xl:text-xl">
                                 {item.label}
                             </span>
-                       </button>
+                        </button>
                     );
                 })}
             </div>

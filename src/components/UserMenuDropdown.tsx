@@ -13,13 +13,16 @@ type ProfileResponse = {
   };
 };
 
+const profileDisplayNameCache = new Map<string, string>();
+
 export default function UserMenuDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [profileDisplayName, setProfileDisplayName] = useState("");
-  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user } = useUser();
   const userId = user?.id;
+  const [profileDisplayName, setProfileDisplayName] = useState(() =>
+    userId ? profileDisplayNameCache.get(userId) ?? "" : "",
+  );
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
 
@@ -45,11 +48,13 @@ export default function UserMenuDropdown() {
   useEffect(() => {
     if (!userId) {
       setProfileDisplayName("");
-      setIsProfileLoaded(true);
       return;
     }
 
-    setIsProfileLoaded(false);
+    const cachedDisplayName = profileDisplayNameCache.get(userId);
+    if (cachedDisplayName !== undefined) {
+      setProfileDisplayName(cachedDisplayName);
+    }
 
     const fetchProfile = async () => {
       try {
@@ -61,13 +66,14 @@ export default function UserMenuDropdown() {
         }
 
         const profile = (result as ProfileResponse).profile;
-        setProfileDisplayName(profile.displayName ?? "");
+        const nextDisplayName = profile.displayName ?? "";
+        profileDisplayNameCache.set(userId, nextDisplayName);
+        setProfileDisplayName(nextDisplayName);
       } catch {
-        // 失敗時はfallbackを使う
-      } finally {
-        setIsProfileLoaded(true);
+        // 取得失敗時も表示名のfallbackで表示を継続する
       }
     };
+
     fetchProfile();
   }, [userId]);
 
@@ -81,26 +87,21 @@ export default function UserMenuDropdown() {
   };
 
   // ユーザー表示名とイニシャル
-  const displayName = isProfileLoaded
-    ? profileDisplayName.trim() ||
-      user?.user_metadata?.name ||
-      user?.email?.split("@")[0] ||
-      "ユーザー"
-    : "";
+  const displayName =
+    profileDisplayName.trim() ||
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0] ||
+    "ユーザー";
+
   const initial = useMemo(() => {
-    if (!isProfileLoaded) return "";
     const base =
       profileDisplayName.trim() ||
       user?.user_metadata?.name ||
       user?.email?.charAt(0) ||
       "U";
+
     return base.charAt(0).toUpperCase();
-  }, [
-    isProfileLoaded,
-    profileDisplayName,
-    user?.user_metadata?.name,
-    user?.email,
-  ]);
+  }, [profileDisplayName, user?.user_metadata?.name, user?.email]);
 
   return (
     <div className="relative z-50" ref={dropdownRef}>
