@@ -232,11 +232,11 @@ export default function DashboardPage() {
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen overflow-x-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Header />
-        <main className="flex-1 px-4 md:px-8 lg:px-28 py-6 md:py-8 lg:py-10">
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8 lg:px-28 lg:py-10">
           <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
             <LayoutDashboard className="w-6 h-6 md:w-8 md:h-8 text-gray-700" />
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -317,7 +317,7 @@ export default function DashboardPage() {
 
           {loading ? (
             <div className="space-y-4 md:space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              <div className="grid min-w-0 grid-cols-1 gap-4 md:gap-6 lg:grid-cols-2">
                 <div className="bg-white rounded-lg p-4 md:p-6 shadow-sm animate-pulse">
                   <div className="h-6 bg-gray-200 rounded mb-4"></div>
                   <div className="h-48 md:h-64 bg-gray-100 rounded"></div>
@@ -361,7 +361,7 @@ export default function DashboardPage() {
             </div>
           ) : stats ? (
             <>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+              <div className="grid min-w-0 grid-cols-1 gap-4 md:gap-6 lg:grid-cols-2 mb-6 md:mb-8">
                 <TagChartComponent
                   data={stats.tagDistribution}
                   title="タグ別割合"
