@@ -90,6 +90,21 @@ export const EventSearchForm = () => {
     // 登録済みイベント管理
     const [registeredEventIds, setRegisteredEventIds] = useState<Set<number>>(new Set())
 
+    useEffect(() => {
+        if (!isModalOpen) return
+
+        const originalBodyOverflow = document.body.style.overflow
+        const originalHtmlOverflow = document.documentElement.style.overflow
+
+        document.body.style.overflow = 'hidden'
+        document.documentElement.style.overflow = 'hidden'
+
+        return () => {
+            document.body.style.overflow = originalBodyOverflow
+            document.documentElement.style.overflow = originalHtmlOverflow
+        }
+    }, [isModalOpen])
+
     // 初期化：登録済みイベントIDを取得
     useEffect(() => {
         loadRegisteredEventIds()

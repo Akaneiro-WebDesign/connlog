@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { X, Tag, PenTool, CalendarDays, MapPinned, UserRound, Save, RotateCcw } from 'lucide-react'
 import { sanitizeEventDescription } from '@/lib/sanitizeEventDescription'
 import { formatDateTime } from '@/lib/formatDateTime'
@@ -49,19 +49,6 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
     const [note, setNote] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [isTagComposing, setIsTagComposing] = useState(false)
-
-    useEffect(() => {
-        const originalBodyOverflow = document.body.style.overflow;
-        const originalHtmlOverflow = document.documentElement.style.overflow;
-
-        document.body.style.overflow = 'hidden';
-        document.documentElement.style.overflow = 'hidden';
-
-        return () => {
-            document.body.style.overflow = originalBodyOverflow;
-            document.documentElement.style.overflow = originalHtmlOverflow;
-        };
-    }, []);
 
     //　タグ追加処理
     const addTag = () => {
