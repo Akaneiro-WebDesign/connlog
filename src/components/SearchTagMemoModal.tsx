@@ -120,10 +120,10 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
 
     return (
         <div
-            className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4"
+            className="fixed inset-0 flex items-center justify-center z-[90] p-2 md:p-4"
             style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
         >
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto relative mx-2 md:mx-0">
+            <div className="bg-white rounded-lg max-w-5xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto relative mx-2 md:mx-0">
                 {/* 閉じるボタン */}
                 <button
                     onClick={handleClose}

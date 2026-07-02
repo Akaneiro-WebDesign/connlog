@@ -88,6 +88,21 @@ export default function ProfilePage() {
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
 
   useEffect(() => {
+    if (!showDeleteConfirm) return;
+
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
+  }, [showDeleteConfirm]);
+
+  useEffect(() => {
     setMounted(true);
   }, []);
 
@@ -455,7 +470,7 @@ export default function ProfilePage() {
 
           {showDeleteConfirm ? (
             <div
-              className="fixed inset-0 flex items-center justify-center z-[60] p-4"
+              className="fixed inset-0 flex items-center justify-center z-[90] p-4"
               style={{ backgroundColor: "rgba(0, 0, 0, 0.8)" }}
             >
               <div className="bg-white rounded-lg max-w-md w-full mx-4">
