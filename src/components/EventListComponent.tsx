@@ -88,6 +88,21 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
   const [saveFeedback, setSaveFeedback] = useState<SaveFeedback | null>(null);
 
   useEffect(() => {
+    if (!isModalOpen && !isDeleteConfirmOpen) return;
+
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
+  }, [isModalOpen, isDeleteConfirmOpen]);
+
+  useEffect(() => {
     const eventTitle = window.sessionStorage.getItem(EVENT_UPDATE_FEEDBACK_KEY);
 
     if (!eventTitle) return;
@@ -560,7 +575,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
       {/* モーダル表示 */}
       {isModalOpen && selectedEvent && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4"
+          className="fixed inset-0 flex items-center justify-center z-[90] p-2 md:p-4"
           style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}
         >
           <div className="bg-white rounded-lg max-w-5xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto relative mx-2 md:mx-0">
@@ -751,7 +766,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
       {/* 削除確認モーダル */}
       {isDeleteConfirmOpen && selectedEvent && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-[60] p-4"
+          className="fixed inset-0 flex items-center justify-center z-[90] p-4"
           style={{ backgroundColor: "rgba(0, 0, 0, 0.8)" }}
         >
           <div className="bg-white rounded-lg max-w-md w-full mx-4">

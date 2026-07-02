@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { X, Tag, PenTool, CalendarDays, MapPinned, UserRound, Save, RotateCcw } from 'lucide-react'
 import { sanitizeEventDescription } from '@/lib/sanitizeEventDescription'
 import { formatDateTime } from '@/lib/formatDateTime'
@@ -49,6 +49,19 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
     const [note, setNote] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [isTagComposing, setIsTagComposing] = useState(false)
+
+    useEffect(() => {
+        const originalBodyOverflow = document.body.style.overflow;
+        const originalHtmlOverflow = document.documentElement.style.overflow;
+
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = originalBodyOverflow;
+            document.documentElement.style.overflow = originalHtmlOverflow;
+        };
+    }, []);
 
     //　タグ追加処理
     const addTag = () => {
@@ -120,10 +133,10 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
 
     return (
         <div
-            className="fixed inset-0 flex items-center justify-center z-50 p-2 md:p-4"
+            className="fixed inset-0 flex items-center justify-center z-[90] p-2 md:p-4"
             style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
         >
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto relative mx-2 md:mx-0">
+            <div className="bg-white rounded-lg max-w-5xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto relative mx-2 md:mx-0">
                 {/* 閉じるボタン */}
                 <button
                     onClick={handleClose}
