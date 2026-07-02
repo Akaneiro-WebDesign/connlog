@@ -174,7 +174,8 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
         selectedEvent.title || "タイトル不明",
       );
 
-      setModalMode("view");
+      setIsModalOpen(false);
+      setSelectedEvent(null);
       window.location.reload();
     } catch (error) {
       console.error("編集保存エラー:", error);
