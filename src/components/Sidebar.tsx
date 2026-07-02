@@ -118,58 +118,61 @@ export default function Sidebar({ className }: SidebarProps) {
             onClick={() => setIsMobileMenuOpen(false)}
             />
         )}
+        {/* デスクトップ用サイドバーの幅確保 */}
+        <div
+            aria-hidden="true"
+            className="hidden shrink-0 lg:block lg:w-64 xl:w-77"
+        />
         {/* サイドバー本体 */}
-    <div className={cn(
-        // デスクトップ用の基本スタイル
-        'flex min-h-screen flex-col border-r border-gray-200 bg-gray-100',
-        //モバイル用のスタイル
-        'lg:relative lg:w-64 lg:translate-x-0 xl:w-77',
-        // モバイルでの表示制御
-        'fixed inset-y-0 left-0 z-[70] w-64 transform transition-transform duration-300 ease-in-out',
-        isMobileMenuOpen
-            ?'translate-x-0'
-            : '-translate-x-full lg:translate-x-0',
-            className,
-        )}
-        >   
-        {/* ヘッダー */}
-        <div className="flex h-16 flex-shrink-0 items-center justify-center bg-red-600 px-4 text-white lg:px-6">
-            <h1 className="text-xl font-bold lg:text-2xl xl:text-3xl">ConnLog</h1>
-        </div>
-
-        {/* ナビゲーション */}
-        <nav className="flex-1 px-2 py-3 pt-8 lg:px-3 lg:pt-13">
-            <div className="space-y-1">
-                {navItems.map((item) => {
-                    const IconComponent = item.icon;
-                    return (
-                        <button
-                        key={item.id}
-                        onClick={() => handleNavigation(item.href)}
-                        className={cn(
-                            'flex w-full items-center rounded-md px-3 py-2 text-left text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 hover:text-gray-900 lg:px-6 lg:py-3 lg:font-black xl:px-10',
-                        )}
-                        >
-                            {/* アイコン */}
-                            <IconComponent className="mr-2 h-5 w-5 flex-shrink-0 lg:mr-3 lg:h-6 lg:w-6" />
-
-                            {/* ラベル */}
-                            <span className="truncate text-sm lg:text-lg xl:text-xl">
-                                {item.label}
-                            </span>
-                        </button>
-                    );
-                })}
+        <div className={cn(
+            // サイドバー本体の基本スタイル
+            'fixed inset-y-0 left-0 z-[70] flex h-screen w-64 flex-col border-r border-gray-200 bg-gray-100',
+            // 表示制御
+            'transform transition-transform duration-300 ease-in-out lg:translate-x-0 xl:w-77',
+            isMobileMenuOpen
+                ? 'translate-x-0'
+                : '-translate-x-full lg:translate-x-0',
+                className,
+            )}
+        >
+            {/* ヘッダー */}
+            <div className="flex h-16 flex-shrink-0 items-center justify-center bg-red-600 px-4 text-white lg:px-6">
+                <h1 className="text-xl font-bold lg:text-2xl xl:text-3xl">ConnLog</h1>
             </div>
-        </nav>
 
-        {/* フッター */}
-        <div className="mt-auto flex-shrink-0 border-t border-gray-300 px-3 py-2 lg:px-4">
-            <div className="text-center text-xs text-gray-400">
-                <p>© 2025-2026 ConnLog</p>
+            {/* ナビゲーション */}
+            <nav className="flex-1 px-2 py-3 pt-8 lg:px-3 lg:pt-13">
+                <div className="space-y-1">
+                    {navItems.map((item) => {
+                        const IconComponent = item.icon;
+                        return (
+                            <button
+                            key={item.id}
+                            onClick={() => handleNavigation(item.href)}
+                            className={cn(
+                                'flex w-full items-center rounded-md px-3 py-2 text-left text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 hover:text-gray-900 lg:px-6 lg:py-3 lg:font-black xl:px-10',
+                            )}
+                            >
+                                {/* アイコン */}
+                                <IconComponent className="mr-2 h-5 w-5 flex-shrink-0 lg:mr-3 lg:h-6 lg:w-6" />
+
+                                {/* ラベル */}
+                                <span className="truncate text-sm lg:text-lg xl:text-xl">
+                                    {item.label}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </nav>
+
+            {/* フッター */}
+            <div className="mt-auto flex-shrink-0 border-t border-gray-300 px-3 py-2 lg:px-4">
+                <div className="text-center text-xs text-gray-400">
+                    <p>© 2025-2026 ConnLog</p>
+                </div>
             </div>
         </div>
-    </div>
     </>
     );
 }
