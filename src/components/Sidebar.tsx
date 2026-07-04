@@ -145,16 +145,27 @@ export default function Sidebar({ className }: SidebarProps) {
                 <div className="space-y-1">
                     {navItems.map((item) => {
                         const IconComponent = item.icon;
+                        const isActive = pathname === item.href;
+
                         return (
                             <button
                             key={item.id}
                             onClick={() => handleNavigation(item.href)}
+                            aria-current={isActive ? 'page' : undefined}
                             className={cn(
-                                'flex w-full items-center rounded-md px-3 py-2 text-left text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 hover:text-gray-900 lg:px-6 lg:py-3 lg:font-black xl:px-10',
+                                'flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-all lg:px-6 lg:py-3 xl:px-10',
+                                isActive
+                                    ? 'bg-gray-200/80 font-bold text-gray-900 hover:bg-gray-200 lg:font-black'
+                                    : 'font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900 lg:font-bold',
                             )}
                             >
                                 {/* アイコン */}
-                                <IconComponent className="mr-2 h-5 w-5 flex-shrink-0 lg:mr-3 lg:h-6 lg:w-6" />
+                                <IconComponent
+                                    className={cn(
+                                        'mr-2 h-5 w-5 flex-shrink-0 lg:mr-3 lg:h-6 lg:w-6',
+                                        isActive ? 'text-gray-900' : 'text-gray-500',
+                                    )}
+                                />
 
                                 {/* ラベル */}
                                 <span className="truncate text-sm lg:text-lg xl:text-xl">
