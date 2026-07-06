@@ -6,6 +6,8 @@ import {
   AlertTriangle,
   CheckCircle,
   Edit3,
+  Eye,
+  EyeOff,
   RotateCcw,
   Save,
   Trash2,
@@ -86,6 +88,15 @@ export default function ProfilePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
+  const [passwordForm, setPasswordForm] = useState({
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+  const [passwordSuccessMessage, setPasswordSuccessMessage] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     if (!showDeleteConfirm) return;
@@ -210,6 +221,56 @@ export default function ProfilePage() {
       );
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (passwordForm.newPassword.length < 6) {
+      setPasswordErrorMessage("パスワードは6文字以上で入力してください。");
+      setPasswordSuccessMessage("");
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordErrorMessage("確認用パスワードが一致しません。");
+      setPasswordSuccessMessage("");
+      return;
+    }
+
+    try {
+      setIsChangingPassword(true);
+      setPasswordErrorMessage("");
+      setPasswordSuccessMessage("");
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      const supabase = createSupabaseBrowserClient();
+
+      const { error } = await supabase.auth.updateUser({
+        password: passwordForm.newPassword,
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      setPasswordForm({
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
+      setPasswordSuccessMessage("パスワードを変更しました。");
+    } catch (error) {
+      setPasswordErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "パスワードの変更に失敗しました。",
+      );
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -449,6 +510,123 @@ export default function ProfilePage() {
                   </div>
                 </div>
               )}
+
+              {!isFetching && !isEditing ? (
+                <div className="mt-10 border-t border-gray-100 pt-8">
+                  <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                    パスワード変更
+                  </h2>
+                  <p className="text-sm text-gray-500 mb-5">
+                    ログインに使用するパスワードを変更できます。
+                  </p>
+
+                  {passwordErrorMessage ? (
+                    <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
+                      <p className="text-sm text-red-800">{passwordErrorMessage}</p>
+                    </div>
+                  ) : null}
+
+                  {passwordSuccessMessage ? (
+                    <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3">
+                      <div className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                        <p className="text-sm text-green-800">{passwordSuccessMessage}</p>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="newPassword"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        新しいパスワード
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="newPassword"
+                          type={showNewPassword ? "text" : "password"}
+                          value={passwordForm.newPassword}
+                          disabled={isChangingPassword}
+                          onChange={(event) =>
+                            setPasswordForm((prev) => ({
+                              ...prev,
+                              newPassword: event.target.value,
+                            }))
+                          }
+                          autoComplete="new-password"
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-sm md:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          placeholder="6文字以上で入力"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword((prev) => !prev)}
+                          disabled={isChangingPassword}
+                          className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label={showNewPassword ? "パスワードを非表示にする" : "パスワードを表示する"}
+                        >
+                          {showNewPassword ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="confirmPassword"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        新しいパスワード（確認）
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={passwordForm.confirmPassword}
+                          disabled={isChangingPassword}
+                          onChange={(event) =>
+                            setPasswordForm((prev) => ({
+                              ...prev,
+                              confirmPassword: event.target.value,
+                            }))
+                          }
+                          autoComplete="new-password"
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-sm md:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          placeholder="もう一度入力"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword((prev) => !prev)}
+                          disabled={isChangingPassword}
+                          className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label={showConfirmPassword ? "確認用パスワードを非表示にする" : "確認用パスワードを表示する"}
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center md:justify-start">
+                      <button
+                        type="submit"
+                        disabled={isChangingPassword}
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Save className="w-4 h-4" />
+                        {isChangingPassword ? "変更中..." : "パスワードを変更"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              ) : null}
 
               {!isFetching && !isEditing ? (
                 <div className="mt-8 border-t border-gray-100 pt-5 text-right">
