@@ -449,21 +449,22 @@ export default function ProfilePage() {
 
                     <div className="flex flex-col md:flex-row justify-center gap-3 mt-8 md:mt-15">
                       <button
-                        type="submit"
-                        disabled={isSaving}
-                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Save className="w-4 h-4" />
-                        {isSaving ? "保存中..." : "保存"}
-                      </button>
-                      <button
                         type="button"
                         onClick={handleCancel}
                         disabled={isSaving}
-                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm bg-gray-200 text-gray-700 transition-colors hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <RotateCcw className="w-4 h-4" />
                         戻る
+                      </button>
+
+                      <button
+                        type="submit"
+                        disabled={isSaving}
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm bg-green-500 text-white transition-colors hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Save className="w-4 h-4" />
+                        {isSaving ? "保存中..." : "保存"}
                       </button>
                     </div>
                   </form>
@@ -505,7 +506,7 @@ export default function ProfilePage() {
                       <button
                         type="button"
                         onClick={handleEditStart}
-                        className="w-full md:w-28 inline-flex items-center justify-center gap-2 rounded text-sm px-4 py-2 bg-blue-500 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm bg-blue-500 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <Edit3 className="w-4 h-4" />
                         編集
@@ -516,22 +517,24 @@ export default function ProfilePage() {
                 </div>
 
                 {!isFetching && !isEditing ? (
-                  <div className="bg-white rounded-lg p-4 md:p-6 lg:p-8 shadow-sm">
+                  <div className="bg-white rounded-lg p-4 md:p-6 lg:px-12 lg:py-8 shadow-sm">
                     <div className="space-y-5">
-                    <div>
-                      <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
-                        ログイン情報
-                      </h2>
-                      <p className="text-sm text-gray-500">
-                        ログインに使用するパスワードを変更できます。
-                      </p>
-                    </div>
+                      <div>
+                        <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                          ログイン情報
+                        </h2>
+                        <p className="text-sm text-gray-500">
+                          ログインに使用するパスワードを変更できます。
+                        </p>
+                      </div>
 
                       {passwordSuccessMessage ? (
                         <div className="rounded-lg border border-green-200 bg-green-50 p-3">
                           <div className="flex items-start gap-3">
                             <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                            <p className="text-sm text-green-800">{passwordSuccessMessage}</p>
+                            <p className="text-sm text-green-800">
+                              {passwordSuccessMessage}
+                            </p>
                           </div>
                         </div>
                       ) : null}
@@ -544,44 +547,45 @@ export default function ProfilePage() {
                             setPasswordErrorMessage("");
                             setPasswordSuccessMessage("");
                           }}
-                          className="w-full md:w-28 inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm bg-green-500 text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
+                          className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm bg-green-500 text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
                           <Save className="w-4 h-4" />
                           変更
-                        </button>
-                      </div>
-                      </div>
-                      </div>
-                        ) : null}
-
-                {!isFetching && !isEditing ? (
-                  <div className="bg-white rounded-lg p-4 md:p-6 lg:p-8 shadow-sm">
-                    <div className="space-y-5">
-                      <div>
-                        <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
-                          アカウント削除
-                        </h2>
-                        <p className="text-sm text-gray-500">
-                          アカウントを削除すると、登録イベント・タグ・メモ・プロフィール情報が削除されます。
-                        </p>
-                      </div>
-                      <div className="flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowDeleteConfirm(true);
-                            setDeleteErrorMessage("");
-                          }}
-                          disabled={isDeletingAccount}
-                          className="w-full md:w-28 inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm bg-red-500 text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                          <Trash2 className="w-4 h-4" />
-                          削除
                         </button>
                       </div>
                     </div>
                   </div>
                 ) : null}
+
+          {!isFetching && !isEditing ? (
+            <div className="bg-white rounded-lg p-4 md:p-6 lg:px-12 lg:py-8 shadow-sm">
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">
+                    アカウント削除
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    アカウントを削除すると、登録イベント・タグ・メモ・プロフィール情報が削除されます。
+                  </p>
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDeleteConfirm(true);
+                      setDeleteErrorMessage("");
+                    }}
+                    disabled={isDeletingAccount}
+                    className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm bg-red-500 text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    削除
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
               </div>
           )}
 
@@ -606,85 +610,94 @@ export default function ProfilePage() {
                   ) : null}
 
                   <div className="space-y-4">
-                  <div>
-                          <label
-                            htmlFor="newPassword"
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                          >
-                            新しいパスワード
-                          </label>
-                          <div className="relative">
-                            <input
-                              id="newPassword"
-                              type={showNewPassword ? "text" : "password"}
-                              value={passwordForm.newPassword}
-                              disabled={isChangingPassword}
-                              onChange={(event) =>
-                                setPasswordForm((prev) => ({
-                                  ...prev,
-                                  newPassword: event.target.value,
-                                }))
-                              }
-                              autoComplete="new-password"
-                              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-sm md:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
-                              placeholder="6文字以上で入力"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowNewPassword((prev) => !prev)}
-                              disabled={isChangingPassword}
-                              className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-                              aria-label={showNewPassword ? "パスワードを非表示にする" : "パスワードを表示する"}
-                            >
-                              {showNewPassword ? (
-                                <EyeOff className="w-5 h-5" />
-                              ) : (
-                                <Eye className="w-5 h-5" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                        <div>
-                        <label
-                            htmlFor="confirmPassword"
-                            className="block text-sm font-medium text-gray-700 mb-1"
-                          >
-                            新しいパスワード（確認）
-                          </label>
-                          <div className="relative">
-                            <input
-                              id="confirmPassword"
-                              type={showConfirmPassword ? "text" : "password"}
-                              value={passwordForm.confirmPassword}
-                              disabled={isChangingPassword}
-                              onChange={(event) =>
-                                setPasswordForm((prev) => ({
-                                  ...prev,
-                                  confirmPassword: event.target.value,
-                                }))
-                              }
-                              autoComplete="new-password"
-                              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-sm md:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
-                              placeholder="もう一度入力"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowConfirmPassword((prev) => !prev)}
-                              disabled={isChangingPassword}
-                              className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-                              aria-label={showConfirmPassword ? "確認用パスワードを非表示にする" : "確認用パスワードを表示する"}
-                            >
-                              {showConfirmPassword ? (
-                                <EyeOff className="w-5 h-5" />
-                              ) : (
-                                <Eye className="w-5 h-5" />
-                              )}
-                            </button>
-                          </div>
+                    <div>
+                      <label
+                        htmlFor="newPassword"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        新しいパスワード
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="newPassword"
+                          type={showNewPassword ? "text" : "password"}
+                          value={passwordForm.newPassword}
+                          disabled={isChangingPassword}
+                          onChange={(event) =>
+                            setPasswordForm((prev) => ({
+                              ...prev,
+                              newPassword: event.target.value,
+                            }))
+                          }
+                          autoComplete="new-password"
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-sm md:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          placeholder="6文字以上で入力"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword((prev) => !prev)}
+                          disabled={isChangingPassword}
+                          className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label={
+                            showNewPassword
+                              ? "パスワードを非表示にする"
+                              : "パスワードを表示する"
+                          }
+                        >
+                          {showNewPassword ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
+                        </button>
                       </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="confirmPassword"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        新しいパスワード（確認）
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={passwordForm.confirmPassword}
+                          disabled={isChangingPassword}
+                          onChange={(event) =>
+                            setPasswordForm((prev) => ({
+                              ...prev,
+                              confirmPassword: event.target.value,
+                            }))
+                          }
+                          autoComplete="new-password"
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-sm md:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          placeholder="もう一度入力"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword((prev) => !prev)}
+                          disabled={isChangingPassword}
+                          className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label={
+                            showConfirmPassword
+                              ? "確認用パスワードを非表示にする"
+                              : "確認用パスワードを表示する"
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="mt-6 flex gap-3">
+                  <div className="mt-6 flex justify-center gap-3">
                     <button
                       type="button"
                       onClick={() => {
@@ -698,17 +711,18 @@ export default function ProfilePage() {
                         setShowConfirmPassword(false);
                       }}
                       disabled={isChangingPassword}
-                      className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded text-sm bg-gray-200 text-gray-700 transition-colors hover:bg-gray-300 disabled:opacity-50"
                     >
-                      キャンセル
+                      <RotateCcw className="w-4 h-4" />
+                      戻る
                     </button>
                     <button
                       type="submit"
                       disabled={isChangingPassword}
-                      className="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="inline-flex items-center justify-center gap-2 rounded px-4 py-2 text-sm bg-green-500 text-white transition-colors hover:bg-green-600 disabled:opacity-50"
                     >
                       <Save className="w-4 h-4" />
-                        {isChangingPassword ? "変更中..." : "変更する"}
+                        {isChangingPassword ? "変更中..." : "変更"}
                     </button>
                   </div>
                 </form>
@@ -753,7 +767,7 @@ export default function ProfilePage() {
                     </div>
                   ) : null}
 
-                  <div className="flex gap-3">
+                  <div className="flex justify-center gap-3">
                     <button
                       type="button"
                       onClick={() => {
@@ -761,16 +775,17 @@ export default function ProfilePage() {
                         setDeleteErrorMessage("");
                       }}
                       disabled={isDeletingAccount}
-                      className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
                     >
-                      キャンセル
+                      <RotateCcw className="w-4 h-4" />
+                      戻る
                     </button>
 
                     <button
                       type="button"
                       onClick={handleDeleteAccount}
                       disabled={isDeletingAccount}
-                      className="flex-1 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors disabled:opacity-50"
                     >
                       {isDeletingAccount ? (
                         <>
