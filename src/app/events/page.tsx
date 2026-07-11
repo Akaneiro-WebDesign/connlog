@@ -76,11 +76,8 @@ export default function EventsPage() {
         setStats(nextStats);
       }
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "データ取得エラー";
       console.error("データ取得エラー:", error);
-
-      setApiError(errorMessage);
+      setApiError("データの読み込みに失敗しました");
       setDataSource("empty");
       setStats(null);
     } finally {
@@ -255,22 +252,12 @@ export default function EventsPage() {
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <div className="flex items-center">
                   <div className="text-red-800 text-sm">
-                    <strong>API エラー:</strong> {apiError}
+                    <strong>{apiError}</strong>
                     <br />
                     <span className="text-red-600">
                       時間をおいて再読み込みするか、ログイン状態を確認してください。
                     </span>
                   </div>
-                </div>
-              </div>
-            )}
-            {!loading && !apiError && dataSource === "real" && (
-              <div className="border rounded-lg p-3 bg-green-50 border-green-200">
-                <div className="text-sm">
-                  <span className="text-green-800">
-                    <strong>実データ表示中:</strong>{" "}
-                    Supabaseから最新データを取得しました。
-                  </span>
                 </div>
               </div>
             )}
