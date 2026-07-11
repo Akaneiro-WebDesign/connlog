@@ -52,7 +52,7 @@ const WeeklyChartComponent: React.FC<WeeklyChartComponentProps> = ({
                                 className="md:!text-xs"
                             />
                             <Tooltip
-                                formatter={(value) => [`${value}件`, '']}
+                                formatter={(value) => [`${value}件`, '参加数']}
                                 contentStyle={{
                                     backgroundColor: 'white',
                                     border: '1px solid #e5e7eb',

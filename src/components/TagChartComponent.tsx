@@ -46,6 +46,7 @@ const TagChartComponent: React.FC<TagChartComponentProps> = ({
                             outerRadius={80}
                             paddingAngle={2}
                             dataKey="value"
+                            nameKey="name"
                             className="md:!inner-radius-[60] md:!outer-radius-[100]"
                         >
                             {data.map((entry, index) => (
@@ -53,7 +54,7 @@ const TagChartComponent: React.FC<TagChartComponentProps> = ({
                             ))}
                         </Pie>
                         <Tooltip
-                            formatter={(value) => [`${value}%`, '']}
+                            formatter={(value, name) => [`${value}%`, name]}
                             contentStyle={{
                                 backgroundColor: 'white',
                                 border: '1px solid #e5e7eb',
