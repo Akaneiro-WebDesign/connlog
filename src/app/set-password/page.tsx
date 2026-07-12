@@ -71,10 +71,9 @@ export default function SetPasswordPage() {
         router.push("/dashboard");
       }, 1200);
     } catch (error) {
+      console.error("パスワード設定エラー:", error);
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "パスワードの設定に失敗しました。",
+        "パスワードの設定に失敗しました。時間をおいてもう一度お試しください。",
       );
     } finally {
       setIsSaving(false);
