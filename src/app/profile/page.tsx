@@ -266,10 +266,9 @@ export default function ProfilePage() {
       setShowPasswordModal(false);
       setPasswordSuccessMessage("パスワードを変更しました。");
     } catch (error) {
+      console.error("パスワード変更エラー:", error);
       setPasswordErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "パスワードの変更に失敗しました。",
+        "パスワードの変更に失敗しました。時間をおいてもう一度お試しください。",
       );
     } finally {
       setIsChangingPassword(false);
