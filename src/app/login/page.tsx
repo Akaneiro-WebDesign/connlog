@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
+const supabase = createSupabaseBrowserClient();
 const signUpMode = process.env.NEXT_PUBLIC_SIGNUP_MODE ?? "invite";
 const isPublicSignUpEnabled = signUpMode === "public";
 
