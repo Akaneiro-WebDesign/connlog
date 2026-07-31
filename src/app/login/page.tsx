@@ -8,6 +8,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 const supabase = createSupabaseBrowserClient();
 const signUpMode = process.env.NEXT_PUBLIC_SIGNUP_MODE ?? "invite";
 const isPublicSignUpEnabled = signUpMode === "public";
+const ACCOUNT_DELETED_NOTICE_KEY = "connlog:account-deleted-notice";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,12 +19,11 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-
-    if (searchParams.get("accountDeleted") === "1") {
+    if (
+      window.sessionStorage.getItem(ACCOUNT_DELETED_NOTICE_KEY) === "1"
+    ) {
       setNoticeMsg("アカウントを削除しました。");
-
-      window.history.replaceState(null, "", "/login");
+      window.sessionStorage.removeItem(ACCOUNT_DELETED_NOTICE_KEY);
     }
   }, []);
 
