@@ -27,6 +27,8 @@ type ProfileResponse = {
   profile: Profile;
 };
 
+const ACCOUNT_DELETED_NOTICE_KEY = "connlog:account-deleted-notice";
+
 const ProfilePageSkeleton = () => {
   return (
     <div className="flex min-h-screen overflow-x-hidden">
@@ -293,10 +295,11 @@ export default function ProfilePage() {
       }
 
       const supabase = createSupabaseBrowserClient();
+      window.sessionStorage.setItem(ACCOUNT_DELETED_NOTICE_KEY, "1");
+
       await supabase.auth.signOut();
 
-      router.replace("/login?accountDeleted=1");
-      router.refresh();
+      router.replace("/login");
     } catch (error) {
       setDeleteErrorMessage(
         error instanceof Error
