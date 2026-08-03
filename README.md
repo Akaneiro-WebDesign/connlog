@@ -161,11 +161,13 @@ MVPとして予定していた主要機能の実装と、Local / Preview / Produ
 * `notes`・`users`について、他ユーザーのデータに対する閲覧・更新・削除・作成・所有者変更が拒否されることを実地テストで確認
 * アカウント削除APIについて、本人確認、service role keyの利用範囲、削除順序、途中失敗時の影響を確認
 * 未使用の`user-signup` Supabase Edge Functionをローカル・本番環境から削除
+* Production環境でOWASP ZAP Baseline Scanを再実行し、High相当の問題がないことと、残警告の対応方針を確認
 
 詳しい調査結果は、以下に記録しています。
 
 * [`アカウント削除API 安全性調査`](docs/review/account-delete-api-security-review.md)
 * [`notes・users RLS安全性調査`](docs/review/notes-users-rls-security-review.md)
+* [`OWASP ZAP Baseline Scan 安全性調査`](docs/review/owasp-zap-baseline-security-review.md)
 
 ### 実装済み
 
