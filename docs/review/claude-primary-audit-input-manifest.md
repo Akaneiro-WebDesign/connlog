@@ -91,6 +91,7 @@
 以下は監査用コピーの作成・確認に使う内部管理文書であり、Claudeへの入力には含めない。
 
 - `docs/review/claude-primary-audit-input-manifest.md`
+- `docs/review/claude-primary-audit-request.md`
 
 ## 4. 秘密情報に関する確認結果
 
