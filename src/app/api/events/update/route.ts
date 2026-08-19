@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  validatePositiveIntegerId,
+  validateTagsAndNote,
+} from "@/lib/eventInputValidation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function PUT(request: NextRequest) {
@@ -14,82 +18,93 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
-    const { event_id, tags, note } = await request.json();
+    const body = await request.json().catch(() => null);
 
-    if (!event_id) {
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json(
-        { error: "event_idが必要です" },
+        { error: "リクエストの形式が正しくありません" },
         { status: 400 },
       );
     }
 
-    const eventIdString = String(event_id);
+    const { event_id, tags, note } = body as Record<string, unknown>;
+    const eventIdResult = validatePositiveIntegerId(event_id, "event_id");
 
-    // 既存タグを削除
+    if (!eventIdResult.ok) {
+      return NextResponse.json({ error: eventIdResult.error }, { status: 400 });
+    }
+
+    const tagsAndNoteResult = validateTagsAndNote(tags, note);
+
+    if (!tagsAndNoteResult.ok) {
+      return NextResponse.json(
+        { error: tagsAndNoteResult.error },
+        { status: 400 },
+      );
+    }
+
+    const eventId = eventIdResult.value;
+
+    const { tags: normalizedTags, note: normalizedNote } =
+      tagsAndNoteResult.value;
+
+    // すべての入力検証が完了してから既存データを変更する
     const { error: deleteTagsError } = await supabase
       .from("tags")
       .delete()
-      .eq("event_id", eventIdString)
+      .eq("event_id", eventId)
       .eq("user_id", user.id);
 
     if (deleteTagsError) {
       console.error("タグ削除エラー:", deleteTagsError);
       return NextResponse.json(
-        { error: "タグの更新に失敗しました", details: deleteTagsError.message },
+        { error: "タグの更新に失敗しました" },
         { status: 500 },
       );
     }
 
-    // 新しいタグを保存
-    if (Array.isArray(tags) && tags.length > 0) {
-      const tagsData = tags
-        .filter((tag: string) => tag && tag.trim())
-        .map((tag: string) => ({
-          event_id: eventIdString,
-          tag_name: tag.trim(),
-          owner_id: user.id,
-          user_id: user.id,
-          created_by_id: user.id,
-        }));
+    if (normalizedTags.length > 0) {
+      const tagsData = normalizedTags.map((tag) => ({
+        event_id: eventId,
+        tag_name: tag,
+        owner_id: user.id,
+        user_id: user.id,
+        created_by_id: user.id,
+      }));
 
-      if (tagsData.length > 0) {
-        const { error: insertTagsError } = await supabase
-          .from("tags")
-          .insert(tagsData);
+      const { error: insertTagsError } = await supabase
+        .from("tags")
+        .insert(tagsData);
 
-        if (insertTagsError) {
-          console.error("タグ保存エラー:", insertTagsError);
-          return NextResponse.json(
-            {
-              error: "タグの更新に失敗しました",
-              details: insertTagsError.message,
-            },
-            { status: 500 },
-          );
-        }
+      if (insertTagsError) {
+        console.error("タグ保存エラー:", insertTagsError);
+        return NextResponse.json(
+          {
+            error: "タグの更新に失敗しました",
+          },
+          { status: 500 },
+        );
       }
     }
 
-    // 既存メモを削除
     const { error: deleteNoteError } = await supabase
       .from("notes")
       .delete()
-      .eq("event_id", eventIdString)
+      .eq("event_id", eventId)
       .eq("user_id", user.id);
 
     if (deleteNoteError) {
       console.error("メモ削除エラー:", deleteNoteError);
       return NextResponse.json(
-        { error: "メモの更新に失敗しました", details: deleteNoteError.message },
+        { error: "メモの更新に失敗しました" },
         { status: 500 },
       );
     }
 
-    // 新しいメモを保存
-    if (note && note.trim()) {
+    if (normalizedNote) {
       const { error: insertNoteError } = await supabase.from("notes").insert({
-        event_id: eventIdString,
-        note: note.trim(),
+        event_id: eventId,
+        note: normalizedNote,
         user_id: user.id,
       });
 
@@ -98,7 +113,6 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json(
           {
             error: "メモの更新に失敗しました",
-            details: insertNoteError.message,
           },
           { status: 500 },
         );

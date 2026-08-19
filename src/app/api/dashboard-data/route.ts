@@ -99,7 +99,6 @@ export async function POST() {
       return NextResponse.json(
         {
           error: "Failed to fetch events data",
-          details: eventsError.message,
         },
         { status: 500 },
       );
@@ -110,7 +109,6 @@ export async function POST() {
       return NextResponse.json(
         {
           error: "Failed to fetch notes data",
-          details: notesError.message,
         },
         { status: 500 },
       );
@@ -121,7 +119,6 @@ export async function POST() {
       return NextResponse.json(
         {
           error: "Failed to fetch tags data",
-          details: tagsError.message,
         },
         { status: 500 },
       );
@@ -307,7 +304,6 @@ export async function POST() {
     return NextResponse.json(
       {
         error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
     );
