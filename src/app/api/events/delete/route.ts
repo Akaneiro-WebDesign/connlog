@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { validatePositiveIntegerId } from "@/lib/eventInputValidation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function deleteRelatedData(
@@ -17,10 +18,7 @@ async function deleteRelatedData(
     return {
       ok: false as const,
       response: NextResponse.json(
-        {
-          error: "メモの削除に失敗しました",
-          details: notesDeleteError.message,
-        },
+        { error: "メモの削除に失敗しました" },
         { status: 500 },
       ),
     };
@@ -37,7 +35,7 @@ async function deleteRelatedData(
     return {
       ok: false as const,
       response: NextResponse.json(
-        { error: "タグの削除に失敗しました", details: tagsDeleteError.message },
+        { error: "タグの削除に失敗しました" },
         { status: 500 },
       ),
     };
@@ -59,14 +57,35 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
-    const { event_id, external_event_id } = await request.json();
+    const body = await request.json().catch(() => null);
+
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json(
+        { error: "リクエストの形式が正しくありません" },
+        { status: 400 },
+      );
+    }
+
+    const { event_id, external_event_id } = body as Record<string, unknown>;
 
     // イベント本体が存在しない場合は、関連データのみ削除する
     if (event_id == null && external_event_id != null) {
+      const externalEventIdResult = validatePositiveIntegerId(
+        external_event_id,
+        "external_event_id",
+      );
+
+      if (!externalEventIdResult.ok) {
+        return NextResponse.json(
+          { error: externalEventIdResult.error },
+          { status: 400 },
+        );
+      }
+
       const relatedDeleteResult = await deleteRelatedData(
         supabase,
         user.id,
-        external_event_id,
+        externalEventIdResult.value,
       );
 
       if (!relatedDeleteResult.ok) {
@@ -79,24 +98,23 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    if (event_id == null) {
-      return NextResponse.json(
-        { error: "event_idが必要です" },
-        { status: 400 },
-      );
+    const eventIdResult = validatePositiveIntegerId(event_id, "event_id");
+
+    if (!eventIdResult.ok) {
+      return NextResponse.json({ error: eventIdResult.error }, { status: 400 });
     }
 
     const { data, error: deleteError } = await supabase
       .from("events")
       .delete()
-      .eq("id", event_id)
+      .eq("id", eventIdResult.value)
       .eq("user_id", user.id)
       .select();
 
     if (deleteError) {
       console.error("削除エラー:", deleteError);
       return NextResponse.json(
-        { error: "削除に失敗しました", details: deleteError.message },
+        { error: "削除に失敗しました" },
         { status: 500 },
       );
     }
@@ -109,12 +127,26 @@ export async function DELETE(request: NextRequest) {
     }
 
     const deletedEvent = data[0];
-    const externalEventId = deletedEvent.event_id;
+    const externalEventIdResult = validatePositiveIntegerId(
+      deletedEvent.event_id,
+      "external_event_id",
+    );
+
+    if (!externalEventIdResult.ok) {
+      console.error(
+        "削除済みイベントのexternal_event_idが不正です:",
+        deletedEvent.event_id,
+      );
+      return NextResponse.json(
+        { error: "関連データの削除に失敗しました" },
+        { status: 500 },
+      );
+    }
 
     const relatedDeleteResult = await deleteRelatedData(
       supabase,
       user.id,
-      externalEventId,
+      externalEventIdResult.value,
     );
 
     if (!relatedDeleteResult.ok) {
