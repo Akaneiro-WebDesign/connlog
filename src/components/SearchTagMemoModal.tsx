@@ -4,6 +4,11 @@ import React, { useState } from 'react'
 import { X, Tag, PenTool, CalendarDays, MapPinned, UserRound, Save, RotateCcw } from 'lucide-react'
 import { sanitizeEventDescription } from '@/lib/sanitizeEventDescription'
 import { formatDateTime } from '@/lib/formatDateTime'
+import {
+    EVENT_NOTE_MAX_LENGTH,
+    EVENT_TAG_MAX_COUNT,
+    EVENT_TAG_MAX_LENGTH,
+} from '@/lib/eventInputValidation'
 
 type ConnpassEvent = {
     id?: number
@@ -55,11 +60,16 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
         const trimmedTag = tagInput.trim()
 
         if (!trimmedTag) return
+        if (trimmedTag.length > EVENT_TAG_MAX_LENGTH) return
 
-        if (!tags.includes(trimmedTag)) {
-            setTags(prev => [...prev, trimmedTag])
+        if (tags.includes(trimmedTag)) {
+            setTagInput('')
+            return
         }
 
+        if (tags.length >= EVENT_TAG_MAX_COUNT) return
+
+        setTags(prev => [...prev, trimmedTag])
         setTagInput('')
     }
 
@@ -194,17 +204,17 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
 
                         {/* 既存タグ表示 */}
                         {tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 md:gap-2 mb-4">
+                            <div className="flex min-w-0 flex-wrap gap-1 md:gap-2 mb-4">
                                 {tags.map((tag, index) => (
                                     <div
                                         key={index}
-                                        className="flex items-center gap-1 px-3 md:px-4 lg:px-6 py-1 bg-gray-100 text-gray-700 text-xs md:text-sm lg:text-base rounded-full"
+                                        className="flex max-w-full items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700 md:px-4 md:text-sm lg:px-6 lg:text-base"
                                     >
-                                        <span className="truncate">{tag}</span>
+                                        <span className="min-w-0 break-all">{tag}</span>
                                         <button
                                             type="button"
                                             onClick={() => removeTag(tag)}
-                                            className="ml-1 text-gray-500 hover:text-gray-700 font-bold"
+                                            className="ml-1 flex-shrink-0 font-bold text-gray-500 hover:text-gray-700"
                                         >
                                             <X className="w-5 h-5 md:w-3 md:h-3" />
                                         </button>
@@ -218,22 +228,36 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                             <input
                                 type="text"
                                 value={tagInput}
+                                disabled={tags.length >= EVENT_TAG_MAX_COUNT}
                                 onChange={(e) => setTagInput(e.target.value)}
                                 onKeyDown={handleTagInputKeyDown}
                                 onCompositionStart={() => setIsTagComposing(true)}
                                 onCompositionEnd={() => setIsTagComposing(false)}
                                 placeholder="例：React, Next.js, TypeScript"
-                                className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:bg-gray-100"
                             />
                             <button
                                 type="button"
                                 onClick={addTag}
-                                disabled={!tagInput.trim()}
+                                disabled={
+                                    !tagInput.trim() ||
+                                    tagInput.trim().length > EVENT_TAG_MAX_LENGTH ||
+                                    tags.length >= EVENT_TAG_MAX_COUNT
+                                }
                                 className="px-4 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap transition-colors"
                             >
                                 追加
                             </button>
                         </div>
+                        {tags.length >= EVENT_TAG_MAX_COUNT ? (
+                            <p className="mt-2 text-xs text-orange-600">
+                                タグは{EVENT_TAG_MAX_COUNT}個まで追加できます
+                            </p>
+                        ) : tagInput.trim().length > EVENT_TAG_MAX_LENGTH ? (
+                            <p className="mt-2 text-xs text-red-600">
+                                1つのタグは{EVENT_TAG_MAX_LENGTH}文字までです
+                            </p>
+                        ) : null}
                     </div>
 
                     {/* メモ入力セクション */}
@@ -246,25 +270,15 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                         <div className="bg-gray-50 rounded-lg p-4 md:p-6">
                             <textarea
                                 value={note}
+                                maxLength={EVENT_NOTE_MAX_LENGTH}
                                 onChange={(e) => setNote(e.target.value)}
                                 placeholder="このイベントについてのメモを入力"
                                 rows={6}
                                 className="w-full border-0 bg-transparent text-sm md:text-base text-gray-700 placeholder-gray-500 focus:outline-none resize-none"
                             />
-                        </div>
-                    </div>
-
-                    {/* 入力状況表示 */}
-                    <div className="mb-6 md:mb-8 p-4 md:p-6 bg-blue-50 rounded-lg">
-                        <p className="font-medium text-gray-900 mb-2 text-sm md:text-base">入力状況</p>
-                        <div className="text-sm text-gray-600 space-y-1">
-                            <p>タグ数: <span className="font-medium">{tags.length}個</span></p>
-                            <p>メモ文字数:<span className="font-medium">{note.length}文字</span></p>
-                            {tags.length > 0 && (
-                                <p className="text-blue-600 mt-2">
-                                    タグ: {tags.join(', ')}
-                                </p>
-                            )}
+                            <p className="mt-2 text-right text-xs text-gray-500">
+                                {note.length} / {EVENT_NOTE_MAX_LENGTH}文字
+                            </p>
                         </div>
                     </div>
 

@@ -20,6 +20,11 @@ import {
   Check,
   Inbox,
 } from "lucide-react";
+import {
+  EVENT_NOTE_MAX_LENGTH,
+  EVENT_TAG_MAX_COUNT,
+  EVENT_TAG_MAX_LENGTH,
+} from "@/lib/eventInputValidation";
 
 // Event型定義
 interface Event {
@@ -189,11 +194,16 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
     const trimmedTag = editTagInput.trim();
 
     if (!trimmedTag) return;
+    if (trimmedTag.length > EVENT_TAG_MAX_LENGTH) return;
 
-    if (!editTags.includes(trimmedTag)) {
-      setEditTags([...editTags, trimmedTag]);
+    if (editTags.includes(trimmedTag)) {
+      setEditTagInput("");
+      return;
     }
 
+    if (editTags.length >= EVENT_TAG_MAX_COUNT) return;
+
+    setEditTags((prev) => [...prev, trimmedTag]);
     setEditTagInput("");
   };
 
@@ -268,7 +278,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
   }
 
   const mainContent = (
-    <div className="space-y-3 md:space-y-4">
+    <div className="min-w-0 space-y-3 md:space-y-4">
       {displayEvents.map((event, index) => {
         const eventKey =
           event.id != null
@@ -282,7 +292,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
         return (
           <div
             key={eventKey}
-            className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 lg:p-10 mb-4 md:mb-6 lg:mb-9 shadow-sm hover:shadow-md transition-shadow"
+            className="mb-4 min-w-0 max-w-full overflow-hidden border border-gray-200 bg-white p-4 rounded-lg shadow-sm transition-shadow hover:shadow-md md:mb-6 md:p-6 lg:mb-9 lg:p-10"
           >
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div className="min-w-0 flex-1">
@@ -336,17 +346,19 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                 <div className="flex items-start gap-2">
                   <Tag className="w-4 h-4 text-gray-500 flex-shrink-0 mt-1" />
                   {event.tags.length > 0 ? (
-                    <div className="flex flex-wrap gap-1 md:gap-2">
+                    <div className="flex min-w-0 flex-1 flex-wrap gap-1 md:gap-2">
                       {event.tags.slice(0, 3).map((tag, index) => (
                         <div
                           key={index}
-                          className="flex items-center gap-1 px-3 md:px-4 lg:px-6 py-1 bg-gray-100 text-gray-700 text-xs md:text-sm lg:text-base rounded-full"
+                          className="flex min-w-0 max-w-full items-center gap-1 overflow-hidden rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700 md:px-4 md:text-sm lg:px-6 lg:text-base"
                         >
-                          <span className="truncate">{tag}</span>
+                          <span className="min-w-0 flex-1 truncate" title={tag}>
+                            {tag}
+                          </span>
                         </div>
                       ))}
                       {event.tags.length > 3 && (
-                        <div className="flex items-center px-3 md:px-4 py-1 bg-gray-200 text-gray-600 text-xs md:text-sm rounded-full">
+                        <div className="flex flex-shrink-0 items-center rounded-full bg-gray-200 px-3 py-1 text-xs text-gray-600 md:px-4 md:text-sm">
                           +{event.tags.length - 3}
                         </div>
                       )}
@@ -611,16 +623,16 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                       </h3>
                     </div>
                     {selectedEvent.tags.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex min-w-0 flex-wrap gap-2">
                         {selectedEvent.tags.map(
                           (tag: string, index: number) => (
                             <div
                               key={index}
-                              className="px-3 md:px-4 lg:px-6 py-1 bg-gray-100 text-gray-700 text-sm md:text-base rounded-full"
+                              className="max-w-full rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700 md:px-4 md:text-base lg:px-6"
                             >
-                              <span>{tag}</span>
+                              <span className="break-all">{tag}</span>
                             </div>
-                          ),
+                          )
                         )}
                       </div>
                     ) : (
@@ -683,17 +695,17 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                       </h3>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 mb-3">
+                    <div className="flex min-w-0 flex-wrap gap-2 mb-3">
                       {editTags.map((tag, index) => (
                         <div
                           key={index}
-                          className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm rounded-full"
+                          className="flex max-w-full items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm text-gray-700"
                         >
-                          <span>{tag}</span>
+                          <span className="min-w-0 break-all">{tag}</span>
                           <button
                             type="button"
                             onClick={() => handleRemoveEditTag(tag)}
-                            className="text-gray-400 hover:text-gray-600"
+                            className="flex-shrink-0 text-gray-400 hover:text-gray-600"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -705,21 +717,38 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                       <input
                         type="text"
                         value={editTagInput}
+                        disabled={editTags.length >= EVENT_TAG_MAX_COUNT}
                         onChange={(e) => setEditTagInput(e.target.value)}
                         onKeyDown={handleEditTagKeyDown}
                         onCompositionStart={() => setIsEditTagComposing(true)}
                         onCompositionEnd={() => setIsEditTagComposing(false)}
-                        className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm md:text-base"
+                        className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm md:text-base disabled:cursor-not-allowed disabled:bg-gray-100"
                         placeholder="例：React, Next.js, TypeScript"
                       />
                       <button
                         type="button"
                         onClick={handleAddEditTag}
-                        className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                        disabled={
+                          !editTagInput.trim() ||
+                          editTagInput.trim().length > EVENT_TAG_MAX_LENGTH ||
+                          editTags.length >= EVENT_TAG_MAX_COUNT
+                        }
+                        className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         追加
                       </button>
                     </div>
+
+                        {editTags.length >= EVENT_TAG_MAX_COUNT ? (
+                          <p className="mt-2 text-xs text-orange-600">
+                            タグは{EVENT_TAG_MAX_COUNT}個まで追加できます
+                          </p>
+                        ) : editTagInput.trim().length >
+                          EVENT_TAG_MAX_LENGTH ? (
+                          <p className="mt-2 text-xs text-red-600">
+                            1つのタグは{EVENT_TAG_MAX_LENGTH}文字までです
+                          </p>
+                        ) : null}
                   </div>
 
                   <div className="mb-8">
@@ -733,10 +762,14 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                       <textarea
                         value={editNote}
                         onChange={(e) => setEditNote(e.target.value)}
+                        maxLength={EVENT_NOTE_MAX_LENGTH}
                         rows={8}
                         className="w-full bg-transparent text-sm md:text-base text-gray-700 whitespace-pre-wrap outline-none resize-none"
                         placeholder="このイベントについてのメモを入力"
                       />
+                      <p className="mt-2 text-right text-xs text-gray-500">
+                        {editNote.length} / {EVENT_NOTE_MAX_LENGTH}文字
+                      </p>
                     </div>
                   </div>
                   <div className="flex flex-col md:flex-row justify-center gap-3 mt-8 md:mt-12">

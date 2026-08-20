@@ -3,6 +3,7 @@
  * connpassイベントをSupabaseデータベースに保存し、ユーザー固有のタグとメモを管理
  */
 import { createSupabaseBrowserClient } from '@/lib/supabase/client'
+import { validateTagsAndNote } from './eventInputValidation'
 
 const supabase = createSupabaseBrowserClient()
 
@@ -86,6 +87,20 @@ export const saveEventWithTagsAndNote = async (
         throw new Error('イベントIDが存在しません')
     }
 
+    const tagsAndNoteResult = validateTagsAndNote(
+        tagsAndNote.tags,
+        tagsAndNote.note
+    )
+
+    if (!tagsAndNoteResult.ok) {
+        throw new Error(tagsAndNoteResult.error)
+    }
+
+    const {
+        tags: normalizedTags,
+        note: normalizedNote
+    } = tagsAndNoteResult.value
+
     const {
         data: { user },
         error: authError
@@ -162,16 +177,14 @@ export const saveEventWithTagsAndNote = async (
         }
 
         // 新しいタグを保存
-        if (tagsAndNote.tags && tagsAndNote.tags.length > 0) {
-            const tagsData = tagsAndNote.tags
-                .filter((tag) => tag && tag.trim())
-                .map((tag) => ({
-                    event_id: eventIdString,
-                    tag_name: tag.trim(),
-                    owner_id: userId,
-                    user_id: userId,
-                    created_by_id: userId,
-                }))
+        if (normalizedTags.length > 0) {
+            const tagsData = normalizedTags.map((tag) => ({
+                event_id: eventIdString,
+                tag_name: tag,
+                owner_id: userId,
+                user_id: userId,
+                created_by_id: userId,
+            }))
 
             if (tagsData.length > 0) {
                 const { error: tagsError } = await supabase
@@ -185,40 +198,38 @@ export const saveEventWithTagsAndNote = async (
             }
         }
 
-        // メモを保存
-        if (tagsAndNote.note && tagsAndNote.note.trim()) {
-            // 既存メモを削除
-            const { error: deleteNoteError } = await supabase
-                .from('notes')
-                .delete()
-                .eq('event_id', eventIdString)
-                .eq('user_id', userId)
+        // 既存メモを削除
+        const { error: deleteNoteError } = await supabase
+            .from('notes')
+            .delete()
+            .eq('event_id', eventIdString)
+            .eq('user_id', userId)
 
-                if (deleteNoteError) {
-                    console.error('既存メモ削除エラー:', deleteNoteError)
-                    throw new Error(`既存メモの削除に失敗しました:
-                        ${deleteNoteError.message}`)
-                }
+        if (deleteNoteError) {
+            console.error('既存メモ削除エラー:', deleteNoteError)
+            throw new Error('既存メモの削除に失敗しました')
+        }
 
-            // 新しいメモを挿入
+        // 入力されたメモがある場合だけ新しいメモを保存
+        if (normalizedNote) {
             const { error: insertNoteError } = await supabase
                 .from('notes')
                 .insert({
                     event_id: eventIdString,
-                    note: tagsAndNote.note.trim(),
+                    note: normalizedNote,
                     user_id: userId,
                 })
 
             if (insertNoteError) {
                 console.error('メモ保存エラー:', insertNoteError)
-                throw new Error(`メモの保存に失敗しました: ${insertNoteError.message}`)
+                throw new Error('メモの保存に失敗しました')
             }
         }
 
         return {
             event: savedEvent,
-            tags: tagsAndNote.tags || [],
-            note: tagsAndNote.note || '',
+            tags: normalizedTags,
+            note: normalizedNote,
             isUpdate,
         }
     } catch (error) {
