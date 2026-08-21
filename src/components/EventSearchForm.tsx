@@ -21,6 +21,7 @@ import {
     X,
     Check
 } from 'lucide-react'
+import { getSafeHttpUrl } from '@/lib/getSafeHttpUrl'
 
 type ConnpassEvent = {
     id?: number
@@ -458,6 +459,9 @@ export const EventSearchForm = () => {
                             const { date, time } = formatDateTime(event.started_at ?? '', event.ended_at)
                             const rawDescription = event.catch || event.description || event.event_description || ''
                             const cleanDescription = sanitizeEventDescription(rawDescription, 100)
+                            const eventUrl =
+                                getSafeHttpUrl(event.event_url) ??
+                                getSafeHttpUrl(event.url)
 
                             return (
                                 <div key={eventId || index} className="bg-white border border-gray-200 rounded-lg p-4 md:p-6 lg:p-10 mb-4 md:mb-6 lg:mb-9 shadow-sm hover:shadow-md transition-shadow">
@@ -490,14 +494,20 @@ export const EventSearchForm = () => {
                                             </div>
 
                                             {/* タイトル */}
-                                            <a
-                                                href={event.event_url || event.url || '#'}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="mb-3 block cursor-pointer line-clamp-2 text-lg font-semibold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-4 md:text-2xl"
-                                            >
-                                                {event.title || 'タイトル不明'}
-                                            </a>
+                                            {eventUrl ? (
+                                                <a
+                                                    href={eventUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="mb-3 block cursor-pointer line-clamp-2 text-lg font-semibold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-4 md:text-2xl"
+                                                >
+                                                    {event.title || 'タイトル不明'}
+                                                </a>
+                                            ) : (
+                                                <h3 className="mb-3 line-clamp-2 text-lg font-semibold text-gray-900 md:mb-4 md:text-2xl">
+                                                    {event.title || 'タイトル不明'}
+                                                </h3>
+                                            )}
 
                                             {/* 場所情報 */}
                                             <div className="flex items-center gap-2 mb-3 md:mb-5">

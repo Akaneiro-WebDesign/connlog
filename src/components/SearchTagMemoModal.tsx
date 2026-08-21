@@ -9,6 +9,7 @@ import {
     EVENT_TAG_MAX_COUNT,
     EVENT_TAG_MAX_LENGTH,
 } from '@/lib/eventInputValidation'
+import { getSafeHttpUrl } from '@/lib/getSafeHttpUrl'
 
 type ConnpassEvent = {
     id?: number
@@ -128,6 +129,10 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
     // 共通関数を使用：モーダル表示なので150文字制限
     const cleanDescription = sanitizeEventDescription(rawDescription, 150)
 
+    const eventUrl =
+        getSafeHttpUrl(event.event_url) ??
+        getSafeHttpUrl(event.url)
+
     return (
         <div
             className="fixed inset-0 flex items-center justify-center z-[90] p-2 md:p-4"
@@ -172,14 +177,20 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                                 </div>
                             </div>
 
-                            <a
-                                href={event.event_url || event.url || '#'}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mb-4 block cursor-pointer text-lg font-bold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-6 md:text-2xl"
-                            >
+                            {eventUrl ? (
+                                <a
+                                    href={eventUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mb-4 block cursor-pointer text-lg font-bold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-6 md:text-2xl"
+                                >
+                                    {event.title || 'タイトル不明'}
+                                </a>
+                            ) : (
+                                <h2 className="mb-4 text-lg font-bold text-gray-900 md:mb-6 md:text-2xl">
                                 {event.title || 'タイトル不明'}
-                            </a>
+                                </h2>
+                            )}
 
                             <div className="flex items-center gap-2">
                                 <MapPinned className="h-4 w-4 flex-shrink-0 text-gray-500" />
