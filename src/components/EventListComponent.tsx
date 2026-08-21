@@ -25,6 +25,7 @@ import {
   EVENT_TAG_MAX_COUNT,
   EVENT_TAG_MAX_LENGTH,
 } from "@/lib/eventInputValidation";
+import { getSafeHttpUrl } from "@/lib/getSafeHttpUrl";
 
 // Event型定義
 interface Event {
@@ -288,6 +289,9 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
               : event.noteId != null
                 ? `note-${event.noteId}`
                 : `row-${index}`;
+        const eventUrl =
+          getSafeHttpUrl(event.event_url) ??
+          getSafeHttpUrl(event.url);
 
         return (
           <div
@@ -317,9 +321,9 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                   </div>
                 </div>
 
-                {event.event_url || event.url ? (
+                {eventUrl ? (
                   <a
-                    href={event.event_url || event.url}
+                    href={eventUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mb-3 block cursor-pointer line-clamp-2 text-lg font-semibold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-4 md:text-2xl"
@@ -475,6 +479,10 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
   const renderModalEventHeader = () => {
     if (!selectedEvent) return null;
 
+    const eventUrl =
+      getSafeHttpUrl(selectedEvent.event_url) ??
+      getSafeHttpUrl(selectedEvent.url);
+
     return (
       <div className="mb-6 pr-8">
         <div className="min-w-0">
@@ -499,9 +507,9 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
             </div>
           </div>
 
-          {selectedEvent.event_url || selectedEvent.url ? (
+          {eventUrl ? (
             <a
-              href={selectedEvent.event_url || selectedEvent.url}
+              href={eventUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="mb-4 block cursor-pointer text-lg font-bold text-gray-900 hover:text-gray-500 hover:underline hover:decoration-gray-500 hover:underline-offset-4 md:mb-6 md:text-2xl"
