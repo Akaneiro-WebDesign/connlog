@@ -276,7 +276,7 @@ export async function POST() {
         type: "イベント",
         organizer: getOrganizerName(event),
         venue: event.place || event.venue || "オンライン",
-        tags: eventKey ? (tagsMap.get(eventKey) ?? []).slice(0, 3) : [],
+        tags: eventKey ? (tagsMap.get(eventKey) ?? []) : [],
         description: relatedNote?.note || "メモはありません",
         event_description:
           event.catch ||
