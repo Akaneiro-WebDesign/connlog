@@ -90,13 +90,17 @@ export default function ProfilePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
+  const [deleteCurrentPassword, setDeleteCurrentPassword] = useState("");
+  const [showDeleteCurrentPassword, setShowDeleteCurrentPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
   const [passwordSuccessMessage, setPasswordSuccessMessage] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -230,6 +234,12 @@ export default function ProfilePage() {
   const handleChangePassword = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (!passwordForm.currentPassword) {
+      setPasswordErrorMessage("現在のパスワードを入力してください。");
+      setPasswordSuccessMessage("");
+      return;
+    }
+
     if (passwordForm.newPassword.length < 6) {
       setPasswordErrorMessage("パスワードは6文字以上で入力してください。");
       setPasswordSuccessMessage("");
@@ -253,6 +263,7 @@ export default function ProfilePage() {
 
       const { error } = await supabase.auth.updateUser({
         password: passwordForm.newPassword,
+        current_password: passwordForm.currentPassword,
       });
 
       if (error) {
@@ -260,9 +271,11 @@ export default function ProfilePage() {
       }
 
       setPasswordForm({
+        currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
+      setShowCurrentPassword(false);
       setShowNewPassword(false);
       setShowConfirmPassword(false);
       setShowPasswordModal(false);
@@ -278,6 +291,11 @@ export default function ProfilePage() {
   };
 
   const handleDeleteAccount = async () => {
+    if (!deleteCurrentPassword) {
+      setDeleteErrorMessage("現在のパスワードを入力してください。");
+      return;
+    }
+
     try {
       setIsDeletingAccount(true);
       setDeleteErrorMessage("");
@@ -286,6 +304,12 @@ export default function ProfilePage() {
 
       const response = await fetch("/api/account/delete", {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentPassword: deleteCurrentPassword,
+        }),
       });
 
       const result = await response.json().catch(() => null);
@@ -602,7 +626,7 @@ export default function ProfilePage() {
                     パスワードを変更
                   </h3>
                   <p className="text-sm text-gray-600 text-center mb-6">
-                    新しいパスワードを入力してください。
+                    現在のパスワードと、新しいパスワードを入力してください。
                   </p>
 
                   {passwordErrorMessage ? (
@@ -612,6 +636,48 @@ export default function ProfilePage() {
                   ) : null}
 
                   <div className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="currentPassword"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                          現在のパスワード
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="currentPassword"
+                          type={showCurrentPassword ? "text" : "password"}
+                          value={passwordForm.currentPassword}
+                          disabled={isChangingPassword}
+                          onChange={(event) =>
+                            setPasswordForm((prev) => ({
+                              ...prev,
+                              currentPassword: event.target.value,
+                            }))
+                          }
+                          autoComplete="current-password"
+                          className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-sm md:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          placeholder="現在のパスワードを入力"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword((prev) => !prev)}
+                          disabled={isChangingPassword}
+                          className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label={
+                            showCurrentPassword
+                              ? "現在のパスワードを非表示にする"
+                              : "現在のパスワードを表示する"
+                          }
+                        >
+                          {showCurrentPassword ? (
+                            <EyeOff className="w-5 h-5" />
+                          ) : (
+                            <Eye className="w-5 h-5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
                     <div>
                       <label
                         htmlFor="newPassword"
@@ -706,9 +772,11 @@ export default function ProfilePage() {
                         setShowPasswordModal(false);
                         setPasswordErrorMessage("");
                         setPasswordForm({
+                          currentPassword: "",
                           newPassword: "",
                           confirmPassword: "",
                         });
+                        setShowCurrentPassword(false);
                         setShowNewPassword(false);
                         setShowConfirmPassword(false);
                       }}
@@ -761,6 +829,48 @@ export default function ProfilePage() {
                     </ul>
                   </div>
 
+                  <div className="mb-4">
+                    <label
+                    htmlFor="deleteCurrentPassword"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      現在のパスワード
+                    </label>
+                    <div className="relative">
+                      <input
+                      id="deleteCurrentPassword"
+                      type={showDeleteCurrentPassword ? "text" : "password"}
+                      value={deleteCurrentPassword}
+                      disabled={isDeletingAccount}
+                      onChange={(event) =>
+                        setDeleteCurrentPassword(event.target.value)
+                      }
+                      autoComplete="current-password"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-sm md:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      placeholder="現在のパスワードを入力"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowDeleteCurrentPassword((prev) => !prev)
+                        }
+                        disabled={isDeletingAccount}
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label={
+                          showDeleteCurrentPassword
+                            ? "現在のパスワードを非表示にする"
+                            : "現在のパスワードを表示する"
+                        }
+                      >
+                        {showDeleteCurrentPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
                   {deleteErrorMessage ? (
                     <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
                       <p className="text-sm text-red-800">
@@ -775,6 +885,8 @@ export default function ProfilePage() {
                       onClick={() => {
                         setShowDeleteConfirm(false);
                         setDeleteErrorMessage("");
+                        setDeleteCurrentPassword("");
+                        setShowDeleteCurrentPassword(false);
                       }}
                       disabled={isDeletingAccount}
                       className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors disabled:opacity-50"
