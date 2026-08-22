@@ -18,8 +18,41 @@ const createSupabaseAdminClient = () => {
   });
 };
 
-export async function DELETE() {
+const createSupabaseReauthenticationClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !anonKey) {
+    throw new Error("Supabaseの環境変数が設定されていません。");
+  }
+
+  return createClient(supabaseUrl, anonKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+};
+
+export async function DELETE(request: Request) {
   try {
+    const body: unknown = await request.json().catch(() => null);
+
+    if (
+      !body ||
+      typeof body !== "object" ||
+      !("currentPassword" in body) ||
+      typeof body.currentPassword !== "string" ||
+      body.currentPassword.length === 0
+    ) {
+      return NextResponse.json(
+        { error: "現在のパスワードを入力してください。" },
+        { status: 400 },
+      );
+    }
+
+    const currentPassword = body.currentPassword;
+
     const supabase = await createSupabaseServerClient();
 
     const {
@@ -30,6 +63,49 @@ export async function DELETE() {
     if (authError || !user) {
       return NextResponse.json(
         { error: "ログインが必要です。" },
+        { status: 401 },
+      );
+    }
+
+    if (!user.email) {
+      return NextResponse.json(
+        { error: "ログイン中のメールアドレスを確認できませんでした。" },
+        { status: 400 },
+      );
+    }
+
+    const reauthenticationClient =
+      createSupabaseReauthenticationClient();
+
+    const {
+      data: { user: reauthenticatedUser },
+      error: reauthenticationError,
+    } = await reauthenticationClient.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+
+    const isSameUser = reauthenticatedUser?.id === user.id;
+
+    if (reauthenticatedUser) {
+      const { error: signOutError } = await reauthenticationClient.auth.signOut({
+        scope: "local",
+      });
+
+      if (signOutError) {
+        console.warn(
+          "[DELETE /api/account/delete] reauthentication session cleanup error:",
+          {
+            code: signOutError.code,
+            status: signOutError.status,
+          },
+        );
+      }
+    }
+
+    if (reauthenticationError || !isSameUser) {
+      return NextResponse.json(
+        { error: "現在のパスワードが正しくありません。" },
         { status: 401 },
       );
     }
