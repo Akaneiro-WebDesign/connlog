@@ -173,7 +173,7 @@ export default function SignUpPage() {
                 htmlFor="password"
                 className="mb-2 block text-sm font-medium text-gray-700"
               >
-                パスワード（6文字以上）
+                パスワード（8文字以上）
               </label>
               <input
                 id="password"
@@ -181,7 +181,7 @@ export default function SignUpPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                minLength={6}
+                minLength={8}
                 required
                 disabled={loading}
                 placeholder="パスワードを入力"

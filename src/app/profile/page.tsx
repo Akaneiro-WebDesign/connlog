@@ -240,8 +240,10 @@ export default function ProfilePage() {
       return;
     }
 
-    if (passwordForm.newPassword.length < 6) {
-      setPasswordErrorMessage("パスワードは6文字以上で入力してください。");
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordErrorMessage(
+        "新しいパスワードは8文字以上で入力してください。"
+      );
       setPasswordSuccessMessage("");
       return;
     }
@@ -699,7 +701,7 @@ export default function ProfilePage() {
                           }
                           autoComplete="new-password"
                           className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 text-sm md:text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
-                          placeholder="6文字以上で入力"
+                          placeholder="8文字以上で入力"
                         />
                         <button
                           type="button"
