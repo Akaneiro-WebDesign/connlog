@@ -44,8 +44,8 @@ export default function SetPasswordPage() {
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (password.length < 6) {
-      setErrorMessage("パスワードは6文字以上で入力してください。");
+    if (password.length < 8) {
+      setErrorMessage("新しいパスワードは8文字以上で入力してください。");
       return;
     }
 
@@ -131,11 +131,11 @@ export default function SetPasswordPage() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
-                    minLength={6}
+                    minLength={8}
                     required
                     disabled={isSaving || !hasSession}
                     className="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2.5 pr-12 text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                    placeholder="6文字以上で入力"
+                    placeholder="8文字以上で入力"
                     autoComplete="new-password"
                   />
                   <button
@@ -172,7 +172,7 @@ export default function SetPasswordPage() {
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(event) => setConfirmPassword(event.target.value)}
-                    minLength={6}
+                    minLength={8}
                     required
                     disabled={isSaving || !hasSession}
                     className="w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2.5 pr-12 text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-100 disabled:cursor-not-allowed disabled:opacity-60"
