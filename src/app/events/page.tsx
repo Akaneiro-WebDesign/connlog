@@ -190,7 +190,7 @@ export default function EventsPage() {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="min-w-0 flex-1 flex flex-col">
         <Header />
         <main className="flex-1 px-4 md:px-8 lg:px-28 py-6 md:py-8 lg:py-10">
           <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
