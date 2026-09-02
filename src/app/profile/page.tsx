@@ -269,7 +269,15 @@ export default function ProfilePage() {
       });
 
       if (error) {
-        throw new Error(error.message);
+        if (
+          error.code === "current_password_invalid" ||
+          error.code === "current_password_mismatch"
+        ) {
+          setPasswordErrorMessage("現在のパスワードが正しくありません。");
+          return;
+        }
+
+        throw error;
       }
 
       setPasswordForm({
