@@ -98,9 +98,11 @@ export default function Sidebar({ className }: SidebarProps) {
         <>
         {/* モバイル用ハンバーガーボタン */}
         <button
-        onClick={toggleMobileMenu}
-        className="fixed left-4 top-4 z-[80] flex items-center justify-center rounded-md p-1 transition-colors lg:hidden"
-        aria-label="メニューを開く"
+            onClick={toggleMobileMenu}
+            className="fixed left-4 top-4 z-[80] flex items-center justify-center rounded-md p-1 transition-colors lg:hidden"
+            aria-label={isMobileMenuOpen ? 'メニューを閉じる' : 'メニューを開く'}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="main-navigation-sidebar"
         >
 
         {isMobileMenuOpen ? (
@@ -124,7 +126,9 @@ export default function Sidebar({ className }: SidebarProps) {
             className="hidden shrink-0 lg:block lg:w-64 xl:w-77"
         />
         {/* サイドバー本体 */}
-        <div className={cn(
+        <div
+            id="main-navigation-sidebar"
+            className={cn(
             // サイドバー本体の基本スタイル
             'fixed inset-y-0 left-0 z-[70] flex h-screen w-64 flex-col border-r border-gray-200 bg-gray-100',
             // 表示制御
