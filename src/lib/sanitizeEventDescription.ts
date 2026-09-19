@@ -9,10 +9,11 @@ export const sanitizeEventDescription = (description: string, maxLength: number 
     if (!description) return ''
     const stripHtml = (html: string): string => {
         if (typeof window !== 'undefined') {
-            // ブラウザ環境：DOM APIで正確なHTML除去
-            const temp = document.createElement('div')
-            temp.innerHTML = html
-            return temp.textContent || temp.innerText || ''
+            // template内でHTMLを解析し、文字列だけを取り出す
+            // 生成されたノードは画面のDOMへ挿入しない
+            const template = document.createElement('template')
+            template.innerHTML = html
+            return template.content.textContent || ''
         }
 
         // サーバー環境：正規表現でHTML処理
