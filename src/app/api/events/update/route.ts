@@ -48,6 +48,28 @@ export async function PUT(request: NextRequest) {
     const { tags: normalizedTags, note: normalizedNote } =
       tagsAndNoteResult.value;
 
+    const { data: ownedEvent, error: ownedEventError } = await supabase
+      .from("events")
+      .select("event_id")
+      .eq("event_id", eventId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (ownedEventError) {
+      console.error("イベント所有確認エラー:", ownedEventError);
+      return NextResponse.json(
+        { error: "イベントの確認に失敗しました" },
+        { status: 500 },
+      );
+    }
+
+    if (!ownedEvent) {
+      return NextResponse.json(
+        { error: "イベントが見つかりません" },
+        { status: 404 },
+      );
+    }
+
     // すべての入力検証が完了してから既存データを変更する
     const { error: deleteTagsError } = await supabase
       .from("tags")
