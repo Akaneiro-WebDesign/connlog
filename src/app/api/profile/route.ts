@@ -61,10 +61,27 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json().catch(() => null);
 
-    const displayName =
-      typeof body?.displayName === "string" ? body.displayName.trim() : "";
-    const bio =
-      typeof body?.bio === "string" ? body.bio.trim() : "";
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json(
+        { error: "リクエストの形式が正しくありません。" },
+        { status: 400 },
+      );
+    }
+
+    const { displayName: rawDisplayName, bio: rawBio } = body as Record<
+      string,
+      unknown
+    >;
+
+    if (typeof rawDisplayName !== "string" || typeof rawBio !== "string") {
+      return NextResponse.json(
+        { error: "プロフィールの入力形式が正しくありません。" },
+        { status: 400 },
+      );
+    }
+
+    const displayName = rawDisplayName.trim();
+    const bio = rawBio.trim();
 
     if (displayName.length > DISPLAY_NAME_MAX_LENGTH) {
       return NextResponse.json(
