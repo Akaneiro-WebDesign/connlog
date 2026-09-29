@@ -174,6 +174,7 @@ export const saveEventWithTagsAndNote = async (
 
         if (deleteTagsError) {
             console.error('タグ削除エラー:', deleteTagsError)
+            throw new Error('既存タグの削除に失敗しました')
         }
 
         // 新しいタグを保存
