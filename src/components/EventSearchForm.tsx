@@ -301,8 +301,8 @@ export const EventSearchForm = () => {
         <div className="space-y-6">
             {saveFeedback && (
             <div
-                role="status"
-                aria-live="polite"
+                role={saveFeedback.variant === 'error' ? 'alert' : 'status'}
+                aria-live={saveFeedback.variant === 'error' ? 'assertive' : 'polite'}
                 className="fixed left-4 right-4 bottom-4 z-50 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-6 md:w-[420px]"
             >
                 <div className="flex items-start gap-3">
