@@ -243,8 +243,8 @@ export default function DashboardPage() {
           </div>
           {toastFeedback && (
             <div
-              role="status"
-              aria-live="polite"
+              role={toastFeedback.variant === "error" ? "alert" : "status"}
+              aria-live={toastFeedback.variant === "error" ? "assertive" : "polite"}
               className={`fixed left-4 right-4 bottom-4 z-50 rounded-xl border bg-white px-4 py-3 text-sm shadow-lg md:bottom-auto md:left-auto md:right-6 md:top-6 md:w-[420px] ${
                 toastFeedback.variant === "error"
                   ? "border-red-200"
