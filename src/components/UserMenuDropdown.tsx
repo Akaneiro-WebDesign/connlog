@@ -17,6 +17,8 @@ const profileDisplayNameCache = new Map<string, string>();
 
 export default function UserMenuDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user } = useUser();
   const userId = user?.id;
@@ -78,11 +80,26 @@ export default function UserMenuDropdown() {
   }, [userId]);
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("ログアウトエラー:", error);
-    } else {
+    if (isLoggingOut) return;
+
+    setLogoutError("");
+    setIsLoggingOut(true);
+
+    try {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error("ログアウトエラー:", error);
+        setLogoutError("ログアウトに失敗しました。もう一度お試しください。");
+        return;
+      }
+
       router.replace("/login");
+    } catch (error) {
+      console.error("ログアウト中の予期しないエラー:", error);
+      setLogoutError("ログアウトに失敗しました。もう一度お試しください。");
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -168,11 +185,18 @@ export default function UserMenuDropdown() {
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            disabled={isLoggingOut}
+            className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <LogOut className="w-4 h-4 mr-3" />
-            ログアウト
+            {isLoggingOut ? "ログアウト中…" : "ログアウト"}
           </button>
+
+          {logoutError && (
+            <p role="alert" className="px-4 py-2 text-sm text-red-600">
+              {logoutError}
+            </p>
+          )}
         </div>
       )}
     </div>
