@@ -375,6 +375,11 @@ export const EventSearchForm = () => {
                         <div className="flex gap-2">
                             <input
                                 type="text"
+                                aria-label={
+                                    searchMode === 'event'
+                                        ? 'connpassイベントのIDまたはURL'
+                                        : 'connpassユーザー名'
+                                }
                                 value={searchInput}
                                 onChange={(e) => setSearchInput(e.target.value)}
                                 placeholder={
@@ -555,6 +560,7 @@ export const EventSearchForm = () => {
                             <button
                                 onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                                 disabled={currentPage === 1 || isLoading}
+                                aria-label="前のページ"
                                 className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <ChevronsLeft />
@@ -579,6 +585,8 @@ export const EventSearchForm = () => {
                                     return (
                                         <button
                                             key={pageNumber}
+                                            aria-label={`${pageNumber}ページ`}
+                                            aria-current={pageNumber === currentPage ? 'page' : undefined}
                                             onClick={() => handlePageChange(pageNumber)}
                                             disabled={isLoading}
                                             className={`w-10 h-10 rounded-lg transition-colors disabled:opacity-50 ${
@@ -595,6 +603,7 @@ export const EventSearchForm = () => {
                             <button
                                 onClick={() => handlePageChange(Math.min(Math.ceil(totalResults / ITEMS_PER_PAGE), currentPage + 1))}
                                 disabled={currentPage === Math.ceil(totalResults / ITEMS_PER_PAGE) || isLoading}
+                                aria-label="次のページ"
                                 className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <ChevronsRight />

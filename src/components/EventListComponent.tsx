@@ -415,6 +415,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
+            aria-label="前のページ"
             className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronsLeft />
@@ -443,6 +444,8 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                 return (
                   <button
                     key={pageNumber}
+                    aria-label={`${pageNumber}ページ`}
+                    aria-current={pageNumber === currentPage ? "page" : undefined}
                     onClick={() => setCurrentPage(pageNumber)}
                     className={`w-10 h-10 rounded-lg transition-colors ${
                       pageNumber === currentPage
@@ -467,6 +470,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
               )
             }
             disabled={currentPage === Math.ceil(events.length / ITEMS_PER_PAGE)}
+            aria-label="次のページ"
             className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronsRight />
