@@ -44,7 +44,6 @@ export default function SkillsPage() {
   const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      setApiError(null);
 
       const response = await fetch("/api/dashboard-data", {
         method: "POST",
@@ -60,6 +59,8 @@ export default function SkillsPage() {
         tagDistribution: data.tagDistribution ?? [],
         weeklyParticipation: data.weeklyParticipation ?? [],
       };
+
+      setApiError(null);
 
       if (isEmptySkillsStats(nextStats)) {
         setDataSource("empty");
@@ -127,8 +128,18 @@ export default function SkillsPage() {
                     <strong>{apiError}</strong>
                     <br />
                     <span className="text-red-600">
-                      時間をおいて再読み込みするか、ログイン状態を確認してください。
+                      時間をおいてもう一度お試しください。
                     </span>
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => void loadDashboardData()}
+                        disabled={loading}
+                        className="rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {loading ? "読み込み中…" : "もう一度試す"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
