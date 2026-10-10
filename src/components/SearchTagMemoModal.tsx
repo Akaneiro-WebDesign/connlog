@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { X, Tag, PenTool, CalendarDays, MapPinned, UserRound, Save, RotateCcw } from 'lucide-react'
 import { sanitizeEventDescription } from '@/lib/sanitizeEventDescription'
 import { formatDateTime } from '@/lib/formatDateTime'
@@ -55,6 +55,24 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
     const [note, setNote] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [isTagComposing, setIsTagComposing] = useState(false)
+
+    const dialogRef = useRef<HTMLDialogElement>(null)
+    const closeButtonRef = useRef<HTMLButtonElement>(null)
+    const isVisible = isOpen && event !== null
+
+    useEffect(() => {
+        if (!isVisible) return
+
+        const dialog = dialogRef.current
+        if (!dialog) return
+
+        dialog.showModal()
+        closeButtonRef.current?.focus()
+
+        return () => {
+            dialog.close()
+        }
+    }, [isVisible])
 
     //　タグ追加処理
     const addTag = () => {
@@ -115,6 +133,8 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
 
     // モーダルを閉じる
     const handleClose = () => {
+        if (isLoading) return
+
         resetForm()
         onClose()
     }
@@ -134,15 +154,25 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
         getSafeHttpUrl(event.url)
 
     return (
-        <div
-            className="fixed inset-0 flex items-center justify-center z-[90] p-2 md:p-4"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+        <dialog
+            ref={dialogRef}
+            aria-label="イベントのタグ・メモ登録"
+            onCancel={(e) => {
+                e.preventDefault()
+                if (isTagComposing) return
+                handleClose()
+            }}
+            className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none items-center justify-center border-0 bg-transparent p-2 md:p-4 open:flex backdrop:bg-black/60"
         >
             <div className="bg-white rounded-lg max-w-5xl w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto relative mx-2 md:mx-0">
                 {/* 閉じるボタン */}
                 <button
+                    ref={closeButtonRef}
+                    type="button"
                     onClick={handleClose}
-                    className="absolute top-3 md:top-6 right-3 md:right-6 text-gray-400 hover:text-gray-600 p-2 z-10"
+                    disabled={isLoading}
+                    aria-label="閉じる"
+                    className="absolute top-3 md:top-6 right-3 md:right-6 text-gray-400 hover:text-gray-600 p-2 z-10 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <X className="w-5 h-5 md:w-6 md:h-6" />
                 </button>
@@ -225,6 +255,7 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                                         <button
                                             type="button"
                                             onClick={() => removeTag(tag)}
+                                            aria-label={`タグ「${tag}」を削除`}
                                             className="ml-1 flex-shrink-0 font-bold text-gray-500 hover:text-gray-700"
                                         >
                                             <X className="w-5 h-5 md:w-3 md:h-3" />
@@ -239,6 +270,7 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                             <input
                                 type="text"
                                 value={tagInput}
+                                aria-label="追加するタグ"
                                 disabled={tags.length >= EVENT_TAG_MAX_COUNT}
                                 onChange={(e) => setTagInput(e.target.value)}
                                 onKeyDown={handleTagInputKeyDown}
@@ -281,6 +313,7 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                         <div className="bg-gray-50 rounded-lg p-4 md:p-6">
                             <textarea
                                 value={note}
+                                aria-label="イベントのメモ"
                                 maxLength={EVENT_NOTE_MAX_LENGTH}
                                 onChange={(e) => setNote(e.target.value)}
                                 placeholder="このイベントについてのメモを入力"
@@ -325,6 +358,6 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                     </div>
                 </div>
             </div>
-        </div>
+        </dialog>
     )
 }
