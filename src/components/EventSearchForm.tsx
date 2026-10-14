@@ -288,6 +288,7 @@ export const EventSearchForm = () => {
                 description: '時間をおいてもう一度お試しください。',
                 variant: 'error',
             })
+            throw error
         }
     }
 
