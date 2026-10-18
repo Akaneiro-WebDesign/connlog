@@ -154,3 +154,75 @@ nvmでNode.js `22.23.3`（npm `10.9.9`）へ切り替え、
 
 第6節の判断は2026年8月24日時点のものであり、
 今回の残存指摘すべてを評価済みとするものではない。
+
+## 9. 2026年10月17日の残存指摘の影響確認
+
+### 対象と確認方法
+
+- 基準コミット：`f2dd00c`
+- Node.js `22.23.3`、npm `10.9.9`
+- `npm ci`が成功し、全依存の監査報告は7件
+  （Moderate 1、High 6）
+- 依存経路、アプリ内の関連記述、ESLint設定、
+  PostCSS設定、共通CSSを確認
+- 公開された脆弱性情報と、問題が成立する入力条件を照合
+- 攻撃コードの実行や、本番環境への侵入テストは行っていない
+
+### PostCSS
+
+Next.js `15.5.28`内部のPostCSS `8.4.31`が指摘対象として残る。
+Tailwind側のPostCSS `8.5.26`とは別の依存である。
+
+指摘には、信頼できないCSSの文字列化結果をHTMLへ埋め込む場合の
+XSSと、CSS内のsourceMappingURLによるファイル読み取りが含まれる。
+
+postcss.config.mjsのプラグイン指定は@tailwindcss/postcssのみ。
+src/app/globals.cssにはTailwindの読み込みと固定のスタイルがあり、
+外部URLからのCSS読み込みはない。
+
+src内の検索では、PostCSSの直接利用や、
+今回検索したCSS処理・アップロード関連の記述は見つからなかった。
+確認範囲では、一般利用者が指定したCSSやsource mapを
+対象のPostCSS処理へ渡す経路は確認されなかった。
+
+### braces
+
+次の開発用依存経路でbraces `3.0.3`が残る。
+
+eslint-config-next → @next/eslint-plugin-next →
+fast-glob → micromatch → braces
+
+指摘は、深く入れ子になったパターンの処理による
+スタック枯渇と処理停止に関するものである。
+
+eslint.config.mjsはNext.js標準設定を継承し、
+固定の除外パターンを指定している。
+src内に対象ライブラリの直接利用は見つからなかった。
+
+確認範囲では、一般利用者が入力した文字列を
+この開発用依存経路の検索パターンへ渡す処理は確認されなかった。
+
+### 判断と再確認条件
+
+今回の静的確認の範囲では、一般利用者の入力によって
+残存指摘を悪用する経路は確認されなかった。
+この範囲を根拠として、残存指摘を記録したうえで、
+少人数の招待制テスト運用を継続する判断とする。
+
+これは脆弱性の解消や、すべての間接的な利用経路の
+安全性を証明するものではない。
+悪意ある依存パッケージや外部提供コードのビルドについては、
+今回の判断の対象外とする。
+
+利用者がCSSやファイルを提供する機能、
+動的な検索パターン、外部コードを検査する仕組みを追加した場合、
+または修正版や新たな影響条件が公開された場合は再確認する。
+Next.js内部の依存更新と、bracesの修正状況は継続して確認する。
+
+### 参照
+
+- https://github.com/advisories/GHSA-qx2v-qp2m-jg93
+- https://github.com/advisories/GHSA-6g55-p6wh-862q
+- https://github.com/advisories/GHSA-fxqj-rqcc-2cmp
+- https://github.com/advisories/GHSA-r28c-9q8g-f849
+- https://github.com/advisories/GHSA-vfj7-8cjw-p6xm
