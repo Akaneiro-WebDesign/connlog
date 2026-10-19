@@ -95,10 +95,16 @@ MVP公開時は、少人数のテスト利用を想定したSupabase招待制で
 
 ローカル環境で動作させる場合は、各自でSupabaseプロジェクトとconnpass APIキーを用意し、必要な環境変数を設定してください。
 
+Node.jsは22系を使用します。以下は、Node.jsのバージョン管理ツール
+nvmがインストールされている環境での手順です。
+`.nvmrc`を使ってNode.jsを切り替えます。
+
 ```bash
 git clone https://github.com/Akaneiro-WebDesign/connlog.git
 cd connlog
-npm install
+nvm install
+nvm use
+npm ci
 ```
 
 `.env.local` を作成し、以下の環境変数を設定します。
