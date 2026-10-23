@@ -80,7 +80,10 @@ export default function LoginPage() {
           </div>
 
           {noticeMsg && (
-            <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+            <div
+              role="status"
+              className="mb-5 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800"
+            >
               {noticeMsg}
             </div>
           )}
@@ -127,7 +130,10 @@ export default function LoginPage() {
             </div>
 
             {errorMsg && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+              <div
+                role="alert"
+                className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
+              >
                 {errorMsg}
               </div>
             )}
