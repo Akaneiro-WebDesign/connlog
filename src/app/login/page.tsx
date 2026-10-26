@@ -29,30 +29,39 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
+
     setErrorMsg("");
     setNoticeMsg("");
     setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      if (error.message === "Invalid login credentials") {
-        setErrorMsg("メールアドレスまたはパスワードが正しくありません。");
-      } else if (error.message === "Email not confirmed") {
-        setErrorMsg(
-          "メールアドレスの確認が完了していません。確認メールをご確認ください。",
-        );
-      } else {
-        setErrorMsg(error.message);
+      if (error) {
+        if (error.message === "Invalid login credentials") {
+          setErrorMsg("メールアドレスまたはパスワードが正しくありません。");
+        } else if (error.message === "Email not confirmed") {
+          setErrorMsg(
+            "メールアドレスの確認が完了していません。確認メールをご確認ください。",
+          );
+        } else {
+          setErrorMsg(error.message);
+        }
+        setIsLoading(false);
+        return;
       }
-      setIsLoading(false);
-      return;
-    }
 
-    router.push("/dashboard");
+      router.push("/dashboard");
+    } catch {
+      setErrorMsg(
+        "ログイン処理中に問題が発生しました。時間をおいてもう一度お試しください。",
+      );
+      setIsLoading(false);
+    }
   };
 
   return (
