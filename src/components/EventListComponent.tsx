@@ -717,6 +717,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                           <button
                             type="button"
                             onClick={() => handleRemoveEditTag(tag)}
+                            aria-label={`タグ「${tag}」を削除`}
                             className="flex-shrink-0 text-gray-400 hover:text-gray-600"
                           >
                             <X className="w-4 h-4" />
@@ -729,6 +730,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                       <input
                         type="text"
                         value={editTagInput}
+                        aria-label="追加するタグ"
                         disabled={editTags.length >= EVENT_TAG_MAX_COUNT}
                         onChange={(e) => setEditTagInput(e.target.value)}
                         onKeyDown={handleEditTagKeyDown}
@@ -773,6 +775,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                     <div className="bg-gray-50 rounded-lg p-4 md:p-6">
                       <textarea
                         value={editNote}
+                        aria-label="イベントのメモ"
                         onChange={(e) => setEditNote(e.target.value)}
                         maxLength={EVENT_NOTE_MAX_LENGTH}
                         rows={8}
