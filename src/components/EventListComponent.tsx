@@ -779,7 +779,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                         onChange={(e) => setEditNote(e.target.value)}
                         maxLength={EVENT_NOTE_MAX_LENGTH}
                         rows={8}
-                        className="w-full bg-transparent text-sm md:text-base text-gray-700 whitespace-pre-wrap outline-none resize-none"
+                        className="w-full bg-transparent text-sm md:text-base text-gray-700 whitespace-pre-wrap outline-none resize-none focus-visible:ring-2 focus-visible:ring-blue-600"
                         placeholder="このイベントについてのメモを入力"
                       />
                       <p className="mt-2 text-right text-xs text-gray-500">
