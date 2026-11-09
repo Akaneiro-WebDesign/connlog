@@ -318,7 +318,7 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                                 onChange={(e) => setNote(e.target.value)}
                                 placeholder="このイベントについてのメモを入力"
                                 rows={6}
-                                className="w-full border-0 bg-transparent text-sm md:text-base text-gray-700 placeholder-gray-500 focus:outline-none resize-none"
+                                className="w-full border-0 bg-transparent text-sm md:text-base text-gray-700 placeholder-gray-500 focus:outline-none resize-none focus-visible:ring-2 focus-visible:ring-blue-600"
                             />
                             <p className="mt-2 text-right text-xs text-gray-500">
                                 {note.length} / {EVENT_NOTE_MAX_LENGTH}文字
