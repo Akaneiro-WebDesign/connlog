@@ -276,7 +276,7 @@ export const SearchTagMemoModal: React.FC<SearchTagMemoModalProps> = ({
                                 onKeyDown={handleTagInputKeyDown}
                                 onCompositionStart={() => setIsTagComposing(true)}
                                 onCompositionEnd={() => setIsTagComposing(false)}
-                                placeholder="例：React, Next.js, TypeScript"
+                                placeholder="例：React"
                                 className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:bg-gray-100"
                             />
                             <button
