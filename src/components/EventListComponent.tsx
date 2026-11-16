@@ -737,7 +737,7 @@ const EventListComponent: React.FC<EventListComponentProps> = ({
                         onCompositionStart={() => setIsEditTagComposing(true)}
                         onCompositionEnd={() => setIsEditTagComposing(false)}
                         className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-sm md:text-base disabled:cursor-not-allowed disabled:bg-gray-100"
-                        placeholder="例：React, Next.js, TypeScript"
+                        placeholder="例：React"
                       />
                       <button
                         type="button"
