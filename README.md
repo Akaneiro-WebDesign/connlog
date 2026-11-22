@@ -53,6 +53,8 @@ ConnLogは、connpassのイベント参加履歴を記録し、タグやメモ�
 | 外部API   | connpass API v2         |
 | デプロイ    | Vercel                  |
 
+アプリの構成と処理の流れは、[ConnLogシステム全体像](docs/architecture/connlog-system-overview.md)にまとめています。
+
 ## 主な画面
 | パス           | 内容                |
 | ------------ | ----------------- |
