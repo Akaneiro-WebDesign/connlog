@@ -125,7 +125,7 @@ CONNPASS_API_KEY=
 npm run dev
 ```
 
-ブラウザで以下にアクセスします。
+ブラウザで、起動時にターミナルの「Local」に表示されたURLへアクセスします。通常は以下のURLです。
 
 ```txt
 http://localhost:3000
