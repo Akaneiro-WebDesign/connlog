@@ -157,6 +157,12 @@ http://localhost:3000
 | `npm run start` | ビルド済みアプリを起動 |
 | `npm run lint` | lintを実行 |
 
+本番用にビルドしたアプリをローカルで確認する場合は、ビルドが成功した後に起動します。
+
+```bash
+npm run build && npm run start
+```
+
 ## 開発ステータス
 
 MVPとして予定していた主要機能の実装、主要なセキュリティ確認、独立一次静的監査、Production環境での招待前最終QAを完了しています。
